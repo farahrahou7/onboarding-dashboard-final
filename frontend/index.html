@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Corporate Onboarding</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <img src="logo.png" alt="Vetoquinol Logo" class="logo">
+    <h1>Onboarding Dashboard</h1>
+  </header>
+
+  <div class="dashboard">
+    <aside class="sidebar">
+      <section>
+        <h2>Equipment</h2>
+        <ul id="materials">
+  <li><input type="checkbox"> Headset</li>
+  <li><input type="checkbox"> Beamer</li>
+  <li><input type="checkbox"> Printer</li>
+          <li><input type="checkbox"> PC</li>
+          <li><input type="checkbox"> Keyboard</li>
+          <li><input type="checkbox"> Mouse</li>
+          <li><input type="checkbox"> External Screen</li>
+          <li><input type="checkbox"> Headphones</li>
+          <li><input type="checkbox"> GSM</li>
+          <li><input type="checkbox"> Company Car</li>
+          <li><input type="checkbox"> Fuel/Charging Card</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Notes</h2>
+        <div id="notesContainer" class="notes-container"></div>
+        <button id="addNote">+ Note</button>
+<aside class="activity-list">
+          <h2>Planned Activities</h2>
+          <ul id="plannedActivities"></ul>
+        </aside>
+      </section>
+    </aside>
+
+    
+        <main class="calendar-section" style="flex-grow:1;">
+        
+        
+      <div class="calendar-header">
+        <button id="prevMonth">&lt;</button>
+        <h2 id="monthYear"></h2>
+        <button id="nextMonth">&gt;</button>
+      </div>
+      <div class="weekdays">
+        <div>Ma</div><div>Di</div><div>Wo</div><div>Do</div><div>Vr</div>
+      </div>
+      <div id="calendarDays" class="calendar-days"></div>
+    </main>
+  </div>
+
+  <div id="activityModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalDate"></h3>
+      <div id="activityOptions" class="activity-options"></div>
+      <button id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+<script>
+
+const durations = {'Rondleiding & welkom HR': '1u', 'Welkom IT (materiaal, toegangen, apps)': '2u30', 'Welkom meter': '1u', 'Welkom N+1': '2u30', "Welcome team (121's)": '2u', 'Intro VTQ (in groep)': '2u', 'Intro HR (HR systems & info)': '2u', 'Intro sales': '2u', 'Intro Solutions & KAM': '2u', 'Intro Finance': '1u', 'Intro sales manager Vet BE': '2u', 'Intro sales manager Vet/retail NL': '2u', 'Intro Sales manager Pharma': '1u', 'Intro BI & IT': '1u', 'Intro Communication': '1u', 'intro Corporate com': '1u', 'Intro E-Commerce': '1u'};
+
+function addTooltips() {
+  document.querySelectorAll('#activityOptions button').forEach(btn => {
+    const label = btn.textContent.trim();
+    if (durations[label]) {
+      btn.title = 'Duur: ' + durations[label];
+    }
+  });
+
+  document.querySelectorAll('.activity').forEach(el => {
+    const text = el.textContent.trim().replace(/ ×$/, '');
+    if (durations[text]) {
+      el.title = 'Duur: ' + durations[text];
+    }
+  });
+}
+
+const obsConfig = { childList: true, subtree: true };
+const activityObserver = new MutationObserver(addTooltips);
+activityObserver.observe(document.body, obsConfig);
+
+</script>
+</body>
+</html>

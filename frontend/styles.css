@@ -1,64 +1,83 @@
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  background-color: #f4f7f9;
+  background-color: #f8fafc;
 }
-.container {
+.dashboard {
   display: flex;
   height: 100vh;
 }
-aside {
-  width: 260px;
-  background-color: #ffffff;
+.sidebar {
+  width: 280px;
+  background-color: #fff;
   padding: 20px;
-  border-right: 1px solid #ccc;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
 }
-aside .logo {
-  width: 100%;
+.logo-container {
+  text-align: center;
   margin-bottom: 20px;
 }
-main {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+.logo-container img {
+  max-width: 100%;
+  height: auto;
 }
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.sidebar h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
 }
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-top: 20px;
+.sidebar section {
+  margin-bottom: 20px;
 }
-.calendar-grid div {
-  background-color: #fff;
-  border: 1px solid #cce5cc;
-  padding: 10px;
-  border-radius: 8px;
-  min-height: 80px;
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
 }
-.calendar-grid .inactive {
-  color: #bbb;
+.sidebar li {
+  margin: 5px 0;
 }
 button {
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
 }
 button:hover {
-  background-color: #45a049;
+  background-color: #43a047;
 }
-.notes-section ul,
-#activity-list,
-#equipment-list {
-  list-style-type: none;
-  padding-left: 0;
+.content {
+  flex-grow: 1;
+  padding: 20px;
+}
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.day-label {
+  font-weight: bold;
+  text-align: center;
+  padding-bottom: 10px;
+}
+.calendar-grid.days div {
+  background-color: #ffffff;
+  border: 1px solid #cce5cc;
+  border-radius: 8px;
+  min-height: 80px;
+  padding: 8px;
+}
+.calendar-grid.days .inactive {
+  color: #bdbdbd;
 }

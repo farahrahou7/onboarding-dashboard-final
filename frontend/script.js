@@ -1,167 +1,45 @@
-// script.js – met volledige MongoDB fetch integratie
 
-const calendarDays = document.getElementById("calendarDays");
-const monthYear = document.getElementById("monthYear");
-const prevMonth = document.getElementById("prevMonth");
-const nextMonth = document.getElementById("nextMonth");
-const modal = document.getElementById("activityModal");
-const modalDate = document.getElementById("modalDate");
-const activityOptions = document.getElementById("activityOptions");
-const closeModal = document.getElementById("closeModal");
-const notesContainer = document.getElementById("notesContainer");
-const addNote = document.getElementById("addNote");
+const API_BASE_URL = 'https://onboarding-dashboard-final.onrender.com/api';
 
-let current = new Date(2025, 0);
-let selectedDate = null;
-
-const activitiesList = [
-  "HR Welcome Tour",
-  "Intro IT (equipment, access, apps)",
-  "Welcome mentor",
-  "Welcome N+1",
-  "Welcome team (1-to-1s)",
-  "Intro VTQ (group)",
-  "Intro HR (systems & info)",
-  "Intro Sales",
-  "Intro Solutions & KAM",
-  "Intro Finance",
-  "Intro Sales Vet BE",
-  "Intro Sales Vet/Retail NL",
-  "Intro Sales Pharma",
-  "Intro BI & IT",
-  "Intro Communication",
-  "Intro Corporate Communication & CSR",
-  "Intro E-Commerce",
-  "Intro Marketing"
-];
-
-async function fetchData(url) {
-  const res = await fetch(url);
-  return await res.json();
-}
-
-async function saveData(url, body) {
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+// ✅ Materials checklist
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+  checkbox.addEventListener('change', async () => {
+    await fetch(\`\${API_BASE_URL}/checklist\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: checkbox.nextSibling.textContent.trim(),
+        checked: checkbox.checked
+      })
+    });
   });
-}
+});
 
-async function renderCalendar() {
-  calendarDays.innerHTML = "";
-  const year = current.getFullYear();
-  const month = current.getMonth();
+// ✅ Notes
+document.querySelector('.add-note-btn')?.addEventListener('click', async () => {
+  const note = prompt('Add a note:');
+  if (note) {
+    await fetch(\`\${API_BASE_URL}/notes\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: note })
+    });
+    alert('Note added!');
+  }
+});
 
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-  const daysInMonth = lastDayOfMonth.getDate();
-  const monthName = current.toLocaleString('en-GB', { month: 'long' });
-  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
-
-  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
-  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 5) * 5;
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const activities = await fetchData("/pages/api/activities");
-
-  for (let i = 0; i < totalCells; i++) {
-    const cell = document.createElement("div");
-    const currentDay = i - firstWeekday + 1;
-
-    if (i < firstWeekday) {
-      const dayNum = daysInPrevMonth - firstWeekday + i + 1;
-      cell.className = "day inactive";
-      cell.textContent = dayNum;
-    } else if (currentDay > 0 && currentDay <= daysInMonth) {
-      const date = new Date(year, month, currentDay);
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
-
-      cell.className = "day";
-      cell.textContent = currentDay;
-      cell.dataset.date = dateStr;
-
-      const saved = activities.find(a => a.date === dateStr);
-      if (saved) {
-        const act = document.createElement("div");
-        act.className = "activity";
-        act.innerHTML = `${saved.activity} <span style="color:red; float:right; cursor:pointer;" onclick="removeActivity('${dateStr}', event)">×</span>`;
-        cell.appendChild(act);
-      }
-
-      cell.onclick = () => openModal(dateStr);
-    } else {
-      cell.className = "day empty";
+// ✅ Calendar click handler
+document.querySelectorAll('.calendar-cell')?.forEach(cell => {
+  cell.addEventListener('click', async () => {
+    const date = cell.textContent.trim();
+    const activity = prompt(\`Add activity on \${date}:\`);
+    if (activity) {
+      await fetch(\`\${API_BASE_URL}/calendar\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: \`2025-01-\${date.padStart(2, '0')}\`, activity })
+      });
+      alert(\`Activity added on \${date}\`);
     }
-
-    calendarDays.appendChild(cell);
-  }
-
-  updatePlannedList();
-}
-
-async function openModal(dateStr) {
-  selectedDate = dateStr;
-  modalDate.textContent = `Corporate Onboarding on ${dateStr}`;
-  activityOptions.innerHTML = "";
-
-  activitiesList.forEach(activity => {
-    const btn = document.createElement("button");
-    btn.textContent = activity;
-    btn.onclick = async () => {
-      await saveData("/pages/api/activities", { date: selectedDate, activity });
-      modal.style.display = "none";
-      renderCalendar();
-    };
-    activityOptions.appendChild(btn);
   });
-
-  modal.style.display = "flex";
-}
-
-async function removeActivity(dateStr, event) {
-  event.stopPropagation();
-  await fetch("/pages/api/activities", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date: dateStr }),
-  });
-  renderCalendar();
-}
-
-closeModal.onclick = () => modal.style.display = "none";
-prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); renderCalendar(); };
-nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); renderCalendar(); };
-
-addNote.onclick = async () => {
-  const note = document.createElement("div");
-  note.className = "note";
-  note.contentEditable = true;
-  note.textContent = "Typ hier je notitie...";
-  notesContainer.appendChild(note);
-
-  await saveData("/pages/api/notes", { text: note.textContent });
-};
-
-async function updatePlannedList() {
-  const list = document.getElementById("plannedActivities");
-  if (!list) return;
-  list.innerHTML = "";
-
-  const activities = await fetchData("/pages/api/activities");
-
-  const sorted = activities.sort((a, b) => new Date(a.date) - new Date(b.date));
-  for (const { date, activity } of sorted) {
-    const li = document.createElement("li");
-    li.textContent = `${date}: ${activity}`;
-    li.style.cursor = "pointer";
-    li.onclick = () => {
-      const [year, month, day] = date.split("-").map(Number);
-      current = new Date(year, month - 1, day);
-      renderCalendar();
-    };
-    list.appendChild(li);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", renderCalendar);
+});

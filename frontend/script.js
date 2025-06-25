@@ -1,10 +1,9 @@
-
 const API_BASE_URL = 'https://onboarding-dashboard-final.onrender.com/api';
 
-const calendarContainer = document.querySelector('.calendar-grid');
-const monthYearLabel = document.querySelector('h2');
-const prevBtn = document.querySelector('.prev-month');
-const nextBtn = document.querySelector('.next-month');
+const calendarContainer = document.querySelector('#calendarDays');
+const monthYearLabel = document.querySelector('#monthYear');
+const prevBtn = document.querySelector('#prevMonth');
+const nextBtn = document.querySelector('#nextMonth');
 
 let currentDate = new Date();
 
@@ -14,11 +13,9 @@ function generateCalendar(year, month) {
 
   calendarContainer.innerHTML = ''; // Clear old days
 
-  // Adjust Sunday from 0 to 7 to align with Monday-start week
   const startDay = firstDay === 0 ? 7 : firstDay;
-
-  // Previous month trailing days
   const prevMonthDays = new Date(year, month, 0).getDate();
+
   for (let i = startDay - 2; i >= 0; i--) {
     const day = document.createElement('div');
     day.className = 'calendar-cell muted';
@@ -26,7 +23,6 @@ function generateCalendar(year, month) {
     calendarContainer.appendChild(day);
   }
 
-  // Current month days
   for (let day = 1; day <= daysInMonth; day++) {
     const cell = document.createElement('div');
     cell.className = 'calendar-cell';
@@ -37,7 +33,10 @@ function generateCalendar(year, month) {
         await fetch(`${API_BASE_URL}/calendar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`, activity })
+          body: JSON.stringify({
+            date: `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+            activity
+          })
         });
         alert(`Activity added on ${day}`);
       }
@@ -45,7 +44,7 @@ function generateCalendar(year, month) {
     calendarContainer.appendChild(cell);
   }
 
-  monthYearLabel.textContent = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  monthYearLabel.textContent = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -77,7 +76,7 @@ document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
 });
 
 // Notes
-document.querySelector('.add-note-btn')?.addEventListener('click', async () => {
+document.querySelector('#addNote')?.addEventListener('click', async () => {
   const note = prompt('Add a note:');
   if (note) {
     await fetch(`${API_BASE_URL}/notes`, {

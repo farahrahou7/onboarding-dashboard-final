@@ -1,129 +1,231 @@
-
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f7fa;
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafa;
+  color: #2a2a2a;
 }
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-.top-bar {
-  background-color: white;
-  padding: 10px 20px;
+
+.header {
+  background: #ffffff;
+  padding: 20px 40px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e2e2e2;
 }
-.top-bar img {
-  height: 45px;
+
+.logo {
+  height: 50px;
+  margin-right: 20px;
 }
-.top-bar h1 {
-  font-size: 18px;
-  color: #2d3e50;
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
 }
-.main-area {
+
+.dashboard {
   display: flex;
-  flex-grow: 1;
+  height: calc(100vh - 80px);
 }
+
 .sidebar {
-  width: 250px;
-  background-color: #ffffff;
-  padding: 15px;
+  width: 300px;
+  background: #ffffff;
+  padding: 24px;
   border-right: 1px solid #e0e0e0;
   overflow-y: auto;
 }
+
 .sidebar h2 {
-  font-size: 15px;
-  margin-bottom: 8px;
-  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
+
 .sidebar ul {
   list-style: none;
-  padding-left: 0;
+  padding: 0;
+  margin: 0;
 }
+
 .sidebar li {
-  margin-bottom: 6px;
+  margin: 8px 0;
 }
-.notes-section button {
-  margin-bottom: 10px;
-  background-color: #4CAF50;
+
+.notes-container .note {
+  background: #fdf9c4;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 60px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+button {
+  background: #009639;
   color: white;
   border: none;
-  padding: 5px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
+  margin-top: 10px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
 }
-.notes-section button:hover {
-  background-color: #43a047;
+
+button:hover {
+  background: #007f2a;
 }
-.content {
+
+.calendar-section {
   flex: 1;
-  padding: 20px;
+  padding: 30px;
   overflow-y: auto;
 }
+
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
-.calendar-grid {
+
+.weekdays {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-top: 10px;
+  background: #eff5f0;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #555;
 }
+
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
 }
-.calendar-days .day {
-  background-color: #ffffff;
-  border: 1px solid #cce5cc;
-  padding: 10px;
-  min-height: 70px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.calendar-days .inactive {
-  background-color: #f0f0f0;
-  color: #aaa;
-}
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal {
+
+.day {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
-  width: 90%;
-}
-.modal h3 {
-  margin-top: 0;
-}
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 15px 0;
-}
-.tag-list button {
-  background-color: #e0f2f1;
-  border: 1px solid #4CAF50;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 80px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  position: relative;
   cursor: pointer;
+}
+
+.day .activity {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #4ca146;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  width: 380px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.activity-options button {
+  background: #e9f4ec;
+  color: #00752d;
+  border: 1px solid #c3e6cd;
+  margin: 3px 0;
+}
+
+.activity-options button:hover {
+  background: #d5eddc;
+}
+
+/* Nieuwe stijl voor professioneel en modern uiterlijk */
+body {
+  background: #f4f7f9;
+  font-family: 'Inter', sans-serif;
+}
+
+.header {
+  background: #ffffff;
+  border-bottom: 2px solid #d9e2ec;
+}
+
+button {
+  background: #48a868;
+  color: white;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #3a8c56;
+}
+
+.day {
+  background: #ffffff;
+  border: 1px solid #c8e6c9;
+  transition: box-shadow 0.3s ease;
+}
+
+.day:hover {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.activity {
+  background-color: #e8f5e9;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.activity:hover {
+  background-color: #d0ebd2;
+}
+
+.day.inactive { color: #bbb; }
+
+.activity-list {
+  width: 250px;
+  padding: 1rem;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.activity-list h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.activity-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-list li {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  background: #f4f4f4;
+  border-radius: 4px;
+}
+
+.day.highlight {
+  outline: 2px solid #007bff;
 }

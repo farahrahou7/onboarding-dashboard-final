@@ -1,3 +1,6 @@
+const apiBase = "https://onboarding-dashboard-final.onrender.com/api";
+
+// Kalenderlogica
 const calendarDays = document.getElementById("calendarDays");
 const monthYear = document.getElementById("monthYear");
 const prevMonth = document.getElementById("prevMonth");
@@ -6,185 +9,165 @@ const modal = document.getElementById("activityModal");
 const modalDate = document.getElementById("modalDate");
 const activityOptions = document.getElementById("activityOptions");
 const closeModal = document.getElementById("closeModal");
-const notesContainer = document.getElementById("notesContainer");
-const addNote = document.getElementById("addNote");
+const plannedActivitiesList = document.getElementById("plannedActivities");
 
-let current = new Date();
+let current = new Date(2025, 0);
 let selectedDate = null;
 
-const activitiesList = [
-  "Rondleiding & welkom HR",
-  "Welkom IT (materiaal, toegangen, apps)",
-  "Welkom meter",
-  "Welkom N+1",
-  "Welcome team (121's)",
-  "Intro VTQ (in groep)",
-  "Intro HR (HR systems & info)",
-  "Intro sales",
-  "Intro Solutions & KAM",
-  "Intro Finance",
-  "Intro sales manager Vet BE",
-  "Intro sales manager Vet/retail NL",
-  "Intro Sales manager Pharma",
-  "Intro BI & IT",
-  "Intro Communication",
-  "intro Corporate com",
-  "Intro E-Commerce"
+const activities = [
+  "HR Welcome Tour", "Intro IT (equipment, access, apps)", "Welcome mentor",
+  "Welcome N+1", "Welcome team (1-to-1s)", "Intro VTQ (group)", "Intro HR (systems & info)",
+  "Intro Sales", "Intro Solutions & KAM", "Intro Finance", "Intro Sales Vet BE",
+  "Intro Sales Vet/Retail NL", "Intro Sales Pharma", "Intro BI & IT", "Intro Communication",
+  "Intro Corporate Communication & CSR", "Intro E-Commerce", "Intro Marketing"
 ];
 
-async function fetchData(url) {
-  const res = await fetch(url);
-  return await res.json();
-}
-
-async function saveData(url, body) {
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}
-
-async function renderCalendar() {
+function renderCalendar() {
   calendarDays.innerHTML = "";
   const year = current.getFullYear();
   const month = current.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDay = (firstDay.getDay() + 6) % 7;
 
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-  const daysInMonth = lastDayOfMonth.getDate();
-  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
-  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 5) * 5;
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+  const totalCells = startDay + daysInMonth;
+  const rows = Math.ceil(totalCells / 5) * 5;
 
-  const monthName = current.toLocaleString('nl-NL', { month: 'long' });
+  const monthName = current.toLocaleString("nl-NL", { month: "long" });
   monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
 
-  const activities = await fetchData("https://onboarding-dashboard-final.onrender.com/api/activities");
+  for (let i = 0; i < rows; i++) {
+    const dayEl = document.createElement("div");
+    dayEl.classList.add("day");
 
-  for (let i = 0; i < totalCells; i++) {
-    const cell = document.createElement("div");
-    const currentDay = i - firstWeekday + 1;
+    const dayNum = i - startDay + 1;
 
-    if (i < firstWeekday) {
-      const dayNum = daysInPrevMonth - firstWeekday + i + 1;
-      cell.className = "day inactive";
-      cell.textContent = dayNum;
-    } else if (currentDay > 0 && currentDay <= daysInMonth) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
-      cell.className = "day";
-      cell.textContent = currentDay;
-      cell.dataset.date = dateStr;
-
-      const saved = activities.find(a => a.date === dateStr);
-      if (saved) {
-        const act = document.createElement("div");
-        act.className = "activity";
-        act.innerHTML = `${saved.activity} <span style="color:red; float:right; cursor:pointer;" onclick="removeActivity('${dateStr}', event)">×</span>`;
-        cell.appendChild(act);
-      }
-
-      cell.onclick = () => openModal(dateStr);
+    if (i < startDay) {
+      dayEl.textContent = prevMonthLastDay - (startDay - i - 1);
+      dayEl.classList.add("inactive");
+    } else if (dayNum > daysInMonth) {
+      dayEl.textContent = dayNum - daysInMonth;
+      dayEl.classList.add("inactive");
     } else {
-      cell.className = "day empty";
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+      dayEl.textContent = dayNum;
+      dayEl.dataset.date = dateStr;
+      dayEl.addEventListener("click", () => openModal(dateStr));
     }
 
-    calendarDays.appendChild(cell);
+    calendarDays.appendChild(dayEl);
   }
 
-  updatePlannedList();
+  loadActivities();
 }
 
-async function openModal(dateStr) {
-  selectedDate = dateStr;
-  modalDate.textContent = `Training op ${dateStr}`;
+function openModal(date) {
+  selectedDate = date;
+  modalDate.textContent = `Add Activity on ${date}`;
   activityOptions.innerHTML = "";
 
-  activitiesList.forEach(activity => {
+  activities.forEach((act) => {
     const btn = document.createElement("button");
-    btn.textContent = activity;
-    btn.onclick = async () => {
-      await saveData("https://onboarding-dashboard-final.onrender.com/api/activities", { date: selectedDate, activity });
-      modal.style.display = "none";
-      renderCalendar();
-    };
+    btn.textContent = act;
+    btn.onclick = () => saveActivity(date, act);
     activityOptions.appendChild(btn);
   });
 
   modal.style.display = "flex";
 }
 
-async function removeActivity(dateStr, event) {
-  event.stopPropagation();
-  await fetch("https://onboarding-dashboard-final.onrender.com/api/activities", {
-    method: "DELETE",
+async function saveActivity(date, activity) {
+  await fetch(`${apiBase}/activities`, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date: dateStr }),
+    body: JSON.stringify({ date, activity })
   });
+  modal.style.display = "none";
   renderCalendar();
 }
 
-closeModal.onclick = () => modal.style.display = "none";
-prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); renderCalendar(); };
-nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); renderCalendar(); };
+async function loadActivities() {
+  const res = await fetch(`${apiBase}/activities`);
+  const items = await res.json();
+  plannedActivitiesList.innerHTML = "";
 
-addNote.onclick = async () => {
-  const noteText = "Typ hier je notitie...";
-  const note = document.createElement("div");
-  note.className = "note";
-  note.contentEditable = true;
-  note.textContent = noteText;
-  notesContainer.appendChild(note);
+  items.forEach(({ date, activity }) => {
+    const cell = [...document.querySelectorAll(".day")].find(d => d.dataset.date === date);
+    if (cell) {
+      const span = document.createElement("div");
+      span.classList.add("activity");
+      span.textContent = activity;
+      cell.appendChild(span);
+    }
 
-  await saveData("https://onboarding-dashboard-final.onrender.com/api/notes", { text: noteText });
-};
-
-async function updatePlannedList() {
-  const list = document.getElementById("plannedActivities");
-  if (!list) return;
-  list.innerHTML = "";
-
-  const activities = await fetchData("https://onboarding-dashboard-final.onrender.com/api/activities");
-  const sorted = activities.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  for (const { date, activity } of sorted) {
     const li = document.createElement("li");
-    li.textContent = `${date}: ${activity}`;
-    li.style.cursor = "pointer";
-    li.onclick = () => {
-      const [year, month, day] = date.split("-").map(Number);
-      current = new Date(year, month - 1, day);
-      renderCalendar();
-    };
-    list.appendChild(li);
-  }
+    li.textContent = `${date} – ${activity}`;
+    plannedActivitiesList.appendChild(li);
+  });
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  await renderCalendar();
+// Navigatie
+prevMonth.onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  renderCalendar();
+};
+nextMonth.onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  renderCalendar();
+};
+closeModal.onclick = () => modal.style.display = "none";
 
-  // Check checklist
-  const materials = document.querySelectorAll("#materials input[type=checkbox]");
-  const savedChecklist = await fetchData("https://onboarding-dashboard-final.onrender.com/api/checklist");
-  materials.forEach(checkbox => {
-    const found = savedChecklist.find(item => item.label === checkbox.nextSibling.textContent.trim());
-    if (found) checkbox.checked = found.checked;
-    checkbox.addEventListener("change", () => {
-      fetch("https://onboarding-dashboard-final.onrender.com/api/checklist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: checkbox.nextSibling.textContent.trim(), checked: checkbox.checked })
-      });
+// Checklist opslaan
+document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox, index) => {
+  checkbox.addEventListener("change", async () => {
+    const label = checkbox.parentElement.textContent.trim();
+    await fetch(`${apiBase}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label, checked: checkbox.checked })
     });
   });
-
-  // Load notes
-  const notes = await fetchData("https://onboarding-dashboard-final.onrender.com/api/notes");
-  notes.forEach(n => {
-    const note = document.createElement("div");
-    note.className = "note";
-    note.contentEditable = true;
-    note.textContent = n.text;
-    notesContainer.appendChild(note);
-  });
 });
+
+async function loadChecklist() {
+  const res = await fetch(`${apiBase}/materials`);
+  const data = await res.json();
+  document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
+    const label = checkbox.parentElement.textContent.trim();
+    const item = data.find(d => d.label === label);
+    if (item) checkbox.checked = item.checked;
+  });
+}
+
+// Notes opslaan
+const notesContainer = document.getElementById("notesContainer");
+document.getElementById("addNote").onclick = async () => {
+  const note = prompt("Add note:");
+  if (!note) return;
+
+  await fetch(`${apiBase}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: note })
+  });
+  loadNotes();
+};
+
+async function loadNotes() {
+  const res = await fetch(`${apiBase}/notes`);
+  const notes = await res.json();
+  notesContainer.innerHTML = "";
+  notes.forEach(n => {
+    const div = document.createElement("div");
+    div.className = "note";
+    div.textContent = n.text;
+    notesContainer.appendChild(div);
+  });
+}
+
+// Init
+renderCalendar();
+loadChecklist();
+loadNotes();

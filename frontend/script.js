@@ -1,173 +1,176 @@
-const apiBase = "https://onboarding-dashboard-final.onrender.com/api";
+from pathlib import Path
 
-// Kalenderlogica
-const calendarDays = document.getElementById("calendarDays");
-const monthYear = document.getElementById("monthYear");
-const prevMonth = document.getElementById("prevMonth");
-const nextMonth = document.getElementById("nextMonth");
-const modal = document.getElementById("activityModal");
-const modalDate = document.getElementById("modalDate");
-const activityOptions = document.getElementById("activityOptions");
-const closeModal = document.getElementById("closeModal");
-const plannedActivitiesList = document.getElementById("plannedActivities");
+# Set the output path
+output_path = Path("/mnt/data/script.js")
 
-let current = new Date(2025, 0);
-let selectedDate = null;
+# Full fixed script.js content for calendar, notes, and materials integration
+fixed_script = """
+const calendarEl = document.getElementById("calendar");
+const plannedActivitiesList = document.getElementById("planned-activities");
+const noteForm = document.getElementById("note-form");
+const noteInput = document.getElementById("note");
+const noteList = document.getElementById("note-list");
+const checklistContainer = document.getElementById("checklist");
 
-const activities = [
-  "HR Welcome Tour", "Intro IT (equipment, access, apps)", "Welcome mentor",
-  "Welcome N+1", "Welcome team (1-to-1s)", "Intro VTQ (group)", "Intro HR (systems & info)",
-  "Intro Sales", "Intro Solutions & KAM", "Intro Finance", "Intro Sales Vet BE",
-  "Intro Sales Vet/Retail NL", "Intro Sales Pharma", "Intro BI & IT", "Intro Communication",
-  "Intro Corporate Communication & CSR", "Intro E-Commerce", "Intro Marketing"
-];
+const userId = "user123"; // hardcoded user ID for demo
 
-function renderCalendar() {
-  calendarDays.innerHTML = "";
-  const year = current.getFullYear();
-  const month = current.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startDay = (firstDay.getDay() + 6) % 7;
+// ---- CALENDAR ----
+function renderCalendar(days) {
+  calendarEl.innerHTML = "";
+  days.forEach(day => {
+    const div = document.createElement("div");
+    div.className = `calendar-day ${day.currentMonth ? "" : "prev-next-month"}`;
+    div.textContent = day.date;
+    div.dataset.date = day.fullDate;
 
-  const prevMonthLastDay = new Date(year, month, 0).getDate();
-  const totalCells = startDay + daysInMonth;
-  const rows = Math.ceil(totalCells / 5) * 5;
+    div.addEventListener("click", () => {
+      const title = prompt("Training name:");
+      if (!title) return;
 
-  const monthName = current.toLocaleString("nl-NL", { month: "long" });
-  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+      const activity = { title, date: day.fullDate, userId };
 
-  for (let i = 0; i < rows; i++) {
-    const dayEl = document.createElement("div");
-    dayEl.classList.add("day");
+      fetch("https://onboarding-dashboard-final.onrender.com/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(activity)
+      })
+      .then(res => res.json())
+      .then(saved => {
+        addActivityToSidebar(saved);
+      });
+    });
 
-    const dayNum = i - startDay + 1;
+    calendarEl.appendChild(div);
+  });
+}
 
-    if (i < startDay) {
-      dayEl.textContent = prevMonthLastDay - (startDay - i - 1);
-      dayEl.classList.add("inactive");
-    } else if (dayNum > daysInMonth) {
-      dayEl.textContent = dayNum - daysInMonth;
-      dayEl.classList.add("inactive");
-    } else {
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-      dayEl.textContent = dayNum;
-      dayEl.dataset.date = dateStr;
-      dayEl.addEventListener("click", () => openModal(dateStr));
+function addActivityToSidebar(activity) {
+  const li = document.createElement("li");
+  li.textContent = `${activity.date} - ${activity.title}`;
+  li.dataset.id = activity._id;
+  li.addEventListener("click", () => {
+    if (confirm("Verwijderen?")) {
+      fetch(\`https://onboarding-dashboard-final.onrender.com/api/calendar/\${activity._id}\`, {
+        method: "DELETE"
+      }).then(() => li.remove());
     }
+  });
+  plannedActivitiesList.appendChild(li);
+}
 
-    calendarDays.appendChild(dayEl);
+function generateDays(year, month) {
+  const days = [];
+  const date = new Date(year, month, 1);
+  const firstDay = date.getDay() || 7;
+  const prevLast = new Date(year, month, 0).getDate();
+  const currLast = new Date(year, month + 1, 0).getDate;
+
+  for (let i = firstDay - 1; i > 0; i--) {
+    const d = prevLast - i + 1;
+    days.push({ date: d, fullDate: formatDate(year, month - 1, d), currentMonth: false });
   }
 
-  loadActivities();
+  for (let d = 1; d <= currLast; d++) {
+    days.push({ date: d, fullDate: formatDate(year, month, d), currentMonth: true });
+  }
+
+  const total = Math.ceil(days.length / 7) * 7;
+  for (let i = days.length + 1; i <= total; i++) {
+    const d = i - days.length;
+    days.push({ date: d, fullDate: formatDate(year, month + 1, d), currentMonth: false });
+  }
+
+  return days;
 }
 
-function openModal(date) {
-  selectedDate = date;
-  modalDate.textContent = `Add Activity on ${date}`;
-  activityOptions.innerHTML = "";
-
-  activities.forEach((act) => {
-    const btn = document.createElement("button");
-    btn.textContent = act;
-    btn.onclick = () => saveActivity(date, act);
-    activityOptions.appendChild(btn);
-  });
-
-  modal.style.display = "flex";
+function formatDate(y, m, d) {
+  const mm = String(m + 1).padStart(2, "0");
+  const dd = String(d).padStart(2, "0");
+  return \`\${y}-\${mm}-\${dd}\`;
 }
 
-async function saveActivity(date, activity) {
-  await fetch(`${apiBase}/calendar`, {
+const today = new Date();
+const currentYear = today.getFullYear();
+const currentMonth = today.getMonth();
+const days = generateDays(currentYear, currentMonth);
+renderCalendar(days);
+
+// Load existing activities
+fetch(\`https://onboarding-dashboard-final.onrender.com/api/calendar/\${userId}\`)
+  .then(res => res.json())
+  .then(activities => activities.forEach(addActivityToSidebar));
+
+// ---- NOTES ----
+noteForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = noteInput.value.trim();
+  if (!text) return;
+  const note = { text, userId };
+
+  fetch("https://onboarding-dashboard-final.onrender.com/api/notes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date, title: activity })
-  });
-  modal.style.display = "none";
-  renderCalendar();
-}
-
-async function loadActivities() {
-  const res = await fetch(`${apiBase}/calendar`);
-  const items = await res.json();
-  plannedActivitiesList.innerHTML = "";
-
-  items.forEach(({ date, title }) => {
-    const cell = [...document.querySelectorAll(".day")].find(d => d.dataset.date === date);
-    if (cell) {
-      const span = document.createElement("div");
-      span.classList.add("activity");
-      span.textContent = title;
-      cell.appendChild(span);
-    }
-
+    body: JSON.stringify(note)
+  })
+  .then(res => res.json())
+  .then(saved => {
     const li = document.createElement("li");
-    li.textContent = `${date} – ${title}`;
-    plannedActivitiesList.appendChild(li);
-  });
-}
-
-// Navigatie
-prevMonth.onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  renderCalendar();
-};
-nextMonth.onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  renderCalendar();
-};
-closeModal.onclick = () => modal.style.display = "none";
-
-// Checklist opslaan
-document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox, index) => {
-  checkbox.addEventListener("change", async () => {
-    const label = checkbox.parentElement.textContent.trim();
-    await fetch(`${apiBase}/materials`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ label, checked: checkbox.checked })
+    li.textContent = saved.text;
+    li.dataset.id = saved._id;
+    li.addEventListener("click", () => {
+      if (confirm("Verwijderen?")) {
+        fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${saved._id}\`, {
+          method: "DELETE"
+        }).then(() => li.remove());
+      }
     });
+    noteList.appendChild(li);
+    noteInput.value = "";
   });
 });
 
-async function loadChecklist() {
-  const res = await fetch(`${apiBase}/materials`);
-  const data = await res.json();
-  document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
-    const label = checkbox.parentElement.textContent.trim();
-    const item = data.find(d => d.label === label);
-    if (item) checkbox.checked = item.checked;
+// Load existing notes
+fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${userId}\`)
+  .then(res => res.json())
+  .then(notes => {
+    notes.forEach(note => {
+      const li = document.createElement("li");
+      li.textContent = note.text;
+      li.dataset.id = note._id;
+      li.addEventListener("click", () => {
+        if (confirm("Verwijderen?")) {
+          fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${note._id}\`, {
+            method: "DELETE"
+          }).then(() => li.remove());
+        }
+      });
+      noteList.appendChild(li);
+    });
   });
-}
 
-// Notes opslaan
-const notesContainer = document.getElementById("notesContainer");
-document.getElementById("addNote").onclick = async () => {
-  const note = prompt("Add note:");
-  if (!note) return;
-
-  await fetch(`${apiBase}/notes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: note })
+// ---- CHECKLIST ----
+fetch(\`https://onboarding-dashboard-final.onrender.com/api/checklist/\${userId}\`)
+  .then(res => res.json())
+  .then(items => {
+    checklistContainer.innerHTML = "";
+    items.forEach(item => {
+      const div = document.createElement("div");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = item.checked;
+      input.addEventListener("change", () => {
+        fetch(\`https://onboarding-dashboard-final.onrender.com/api/checklist/\${item._id}\`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ checked: input.checked })
+        });
+      });
+      div.append(input, item.title);
+      checklistContainer.appendChild(div);
+    });
   });
-  loadNotes();
-};
+"""
 
-async function loadNotes() {
-  const res = await fetch(`${apiBase}/notes`);
-  const notes = await res.json();
-  notesContainer.innerHTML = "";
-  notes.forEach(n => {
-    const div = document.createElement("div");
-    div.className = "note";
-    div.textContent = n.text;
-    notesContainer.appendChild(div);
-  });
-}
-
-// Init
-renderCalendar();
-loadChecklist();
-loadNotes();
+# Write the fixed script to file
+output_path.write_text(fixed_script.strip())
+output_path

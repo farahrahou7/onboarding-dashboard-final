@@ -1,4 +1,3 @@
-
 // script.js – met volledige MongoDB fetch integratie
 
 const calendarDays = document.getElementById("calendarDays");

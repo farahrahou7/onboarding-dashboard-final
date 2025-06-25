@@ -1,143 +1,159 @@
-// frontend/script.js
+const apiBase = "https://onboarding-dashboard-final.onrender.com/api";
+const userId = "user123";
 
-const calendarEl = document.getElementById("calendarDays");
+// Kalender elementen
+const calendarDays = document.getElementById("calendarDays");
+const monthYear = document.getElementById("monthYear");
+const prevMonth = document.getElementById("prevMonth");
+const nextMonth = document.getElementById("nextMonth");
 const plannedActivitiesList = document.getElementById("plannedActivities");
-const prevBtn = document.getElementById("prevMonth");
-const nextBtn = document.getElementById("nextMonth");
 
-const userId = "user123"; // statisch of dynamisch zoals gewenst
-const apiBase = "https://onboarding-dashboard-final.onrender.com/api/calendar";
-
-// Bouw kalenderdata op
-function generateDays(year, month) {
-  const days = [];
-  const firstOfMonth = new Date(year, month, 1);
-  const firstDay = (firstOfMonth.getDay() + 6) % 7; // maandag=0
-  const prevLast = new Date(year, month, 0).getDate();
-  const currLast = new Date(year, month + 1, 0).getDate();
-
-  // vorige maand
-  for (let i = firstDay - 1; i >= 0; i--) {
-    days.push({
-      dateNum: prevLast - i,
-      fullDate: formatDate(year, month - 1, prevLast - i),
-      curr: false
-    });
-  }
-  // huidige maand
-  for (let d = 1; d <= currLast; d++) {
-    days.push({
-      dateNum: d,
-      fullDate: formatDate(year, month, d),
-      curr: true
-    });
-  }
-  // opvullen tot veelvoud van 5 kolommen
-  const total = Math.ceil(days.length / 5) * 5;
-  for (let i = days.length; i < total; i++) {
-    const d = i - currLast - firstDay + 1;
-    days.push({
-      dateNum: d,
-      fullDate: formatDate(year, month + 1, d),
-      curr: false
-    });
-  }
-  return days;
-}
+let current = new Date();
 
 function formatDate(y, m, d) {
-  const mm = String(m + 1).padStart(2, "0");
-  const dd = String(d).padStart(2, "0");
-  return `${y}-${mm}-${dd}`;
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-// Render de kalender
-function renderCalendar(days) {
-  calendarEl.innerHTML = "";
-  days.forEach(day => {
-    const div = document.createElement("div");
-    div.className = "day" + (day.curr ? "" : " inactive");
-    div.textContent = day.dateNum;
-    div.dataset.date = day.fullDate;
+function renderCalendar() {
+  calendarDays.innerHTML = "";
+  const year = current.getFullYear();
+  const month = current.getMonth();
 
-    if (day.curr) {
-      div.addEventListener("click", async () => {
-        const title = prompt("Geef de training in:");
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDay = (firstDay.getDay() + 6) % 7;
+
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+  const totalCells = startDay + daysInMonth;
+  const rows = Math.ceil(totalCells / 5) * 5;
+
+  const monthName = current.toLocaleString("nl-NL", { month: "long" });
+  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+
+  for (let i = 0; i < rows; i++) {
+    const dayEl = document.createElement("div");
+    dayEl.classList.add("day");
+    const dayNum = i - startDay + 1;
+
+    if (i < startDay) {
+      dayEl.textContent = prevMonthLastDay - (startDay - i - 1);
+      dayEl.classList.add("inactive");
+    } else if (dayNum > daysInMonth) {
+      dayEl.textContent = dayNum - daysInMonth;
+      dayEl.classList.add("inactive");
+    } else {
+      const dateStr = formatDate(year, month, dayNum);
+      dayEl.textContent = dayNum;
+      dayEl.dataset.date = dateStr;
+
+      dayEl.addEventListener("click", async () => {
+        const title = prompt("Training toevoegen:");
         if (!title) return;
 
-        const res = await fetch(apiBase, {
+        const activity = { title, date: dateStr, userId };
+
+        const res = await fetch(`${apiBase}/calendar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, date: day.fullDate, title })
+          body: JSON.stringify(activity)
         });
         const saved = await res.json();
-        addActivityToSidebar(saved);
-        updateCalendar();
+        renderCalendar();
       });
     }
 
-    calendarEl.appendChild(div);
-  });
+    calendarDays.appendChild(dayEl);
+  }
+
+  loadActivities();
 }
 
-// Voeg activiteit toe aan de sidebar-lijst
-function addActivityToSidebar(act) {
-  const li = document.createElement("li");
-  li.textContent = `${act.date} – ${act.title}`;
-  li.dataset.id = act._id;
-
-  li.addEventListener("click", async () => {
-    if (!confirm("Verwijderen?")) return;
-    await fetch(`${apiBase}/${act._id}`, { method: "DELETE" });
-    li.remove();
-    updateCalendar();
-  });
-
-  plannedActivitiesList.appendChild(li);
-}
-
-// Laad activiteiten van backend
 async function loadActivities() {
+  const res = await fetch(`${apiBase}/calendar/${userId}`);
+  const items = await res.json();
   plannedActivitiesList.innerHTML = "";
-  const res = await fetch(`${apiBase}/${userId}`);
-  const data = await res.json();
-  data.forEach(addActivityToSidebar);
-  return data;
-}
 
-let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
-
-async function updateCalendar() {
-  const days = generateDays(currentYear, currentMonth);
-  renderCalendar(days);
-
-  const activities = await loadActivities();
-  activities.forEach(act => {
-    const cell = [...calendarEl.children].find(c => c.dataset.date === act.date);
+  items.forEach(({ date, title, _id }) => {
+    const cell = [...document.querySelectorAll(".day")].find(d => d.dataset.date === date);
     if (cell) {
       const span = document.createElement("div");
-      span.className = "activity";
-      span.textContent = act.title;
+      span.classList.add("activity");
+      span.textContent = title;
       cell.appendChild(span);
     }
-  });
 
-  document.getElementById("monthYear").textContent =
-    new Date(currentYear, currentMonth).toLocaleString("nl-NL", { month: "long", year: "numeric" });
+    const li = document.createElement("li");
+    li.textContent = `${date} – ${title}`;
+    li.dataset.id = _id;
+    li.addEventListener("click", async () => {
+      if (confirm("Verwijderen?")) {
+        await fetch(`${apiBase}/calendar/${_id}`, { method: "DELETE" });
+        renderCalendar();
+      }
+    });
+    plannedActivitiesList.appendChild(li);
+  });
 }
 
-prevBtn.addEventListener("click", () => {
-  currentMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  if (currentMonth === 11) currentYear--;
-  updateCalendar();
+// Navigatie
+prevMonth.onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  renderCalendar();
+};
+nextMonth.onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  renderCalendar();
+};
+
+// Checklist
+document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
+  checkbox.addEventListener("change", async () => {
+    const label = checkbox.parentElement.textContent.trim();
+    await fetch(`${apiBase}/checklist`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label, checked: checkbox.checked, userId })
+    });
+  });
 });
 
-nextBtn.addEventListener("click", () => {
-  currentMonth = currentMonth === 11 ? 0 : currentMonth + 1;
-  if (currentMonth === 0) currentYear++;
-  updateCalendar();
-});
+async function loadChecklist() {
+  const res = await fetch(`${apiBase}/checklist`);
+  const data = await res.json();
+  document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
+    const label = checkbox.parentElement.textContent.trim();
+    const item = data.find(d => d.label === label);
+    if (item) checkbox.checked = item.checked;
+  });
+}
 
-// start alles
-updateCalendar();
+// Notes
+const notesContainer = document.getElementById("notesContainer");
+document.getElementById("addNote").onclick = async () => {
+  const text = prompt("Voeg een notitie toe:");
+  if (!text) return;
+  await fetch(`${apiBase}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, userId })
+  });
+  loadNotes();
+};
+
+async function loadNotes() {
+  const res = await fetch(`${apiBase}/notes`);
+  const notes = await res.json();
+  notesContainer.innerHTML = "";
+  notes.forEach(n => {
+    const div = document.createElement("div");
+    div.className = "note";
+    div.textContent = n.text;
+    notesContainer.appendChild(div);
+  });
+}
+
+// Initialisatie
+renderCalendar();
+loadChecklist();
+loadNotes();

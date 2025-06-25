@@ -1,4 +1,6 @@
 
+const API_URL = 'https://onboarding-dashboard-final.onrender.com';
+
 function goToDate(dateStr) {
   const target = new Date(dateStr);
   current = new Date(target.getFullYear(), target.getMonth(), 1);
@@ -8,8 +10,6 @@ function goToDate(dateStr) {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, 100);
 }
-
-
 
 const calendarDays = document.getElementById("calendarDays");
 const monthYear = document.getElementById("monthYear");
@@ -46,10 +46,6 @@ const activities = [
   "Intro Marketing"
 ];
 
-
-
-
-
 function renderCalendar() {
   calendarDays.innerHTML = "";
   const year = current.getFullYear();
@@ -59,9 +55,9 @@ function renderCalendar() {
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
   const monthName = current.toLocaleString('en-GB', { month: 'long' });
-  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  monthYear.textContent = \`\${monthName.charAt(0).toUpperCase() + monthName.slice(1)} \${year}\`;
 
-  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7; // Ma=0
+  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
   const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
@@ -69,7 +65,7 @@ function renderCalendar() {
     const cell = document.createElement("div");
     const currentDay = i - firstWeekday + 1;
 
-    const isWeekend = i % 7 === 5 || i % 7 === 6; // Za of Zo
+    const isWeekend = i % 7 === 5 || i % 7 === 6;
     if (isWeekend) {
       cell.style.display = "none";
     }
@@ -80,19 +76,23 @@ function renderCalendar() {
       cell.textContent = dayNum;
     } else if (currentDay > 0 && currentDay <= daysInMonth) {
       const date = new Date(year, month, currentDay);
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
+      const dateStr = \`\${year}-\${String(month + 1).padStart(2, "0")}-\${String(currentDay).padStart(2, "0")}\`;
 
       cell.className = "day";
       cell.textContent = currentDay;
       cell.dataset.date = dateStr;
 
-      const savedActivity = localStorage.getItem("activity_" + dateStr);
-      if (savedActivity) {
-        const act = document.createElement("div");
-        act.className = "activity";
-        act.innerHTML = `${savedActivity} <span style="color:red; float:right; cursor:pointer;" title="Verwijder" onclick="removeActivity('${dateStr}', event)">×</span>`;
-        cell.appendChild(act);
-      }
+      fetch(\`\${API_URL}/activities/\${dateStr}\`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.activity) {
+            const act = document.createElement("div");
+            act.className = "activity";
+            act.innerHTML = \`\${data.activity} <span style="color:red; float:right; cursor:pointer;" title="Verwijder" onclick="removeActivity('\${dateStr}', event)">×</span>\`;
+            cell.appendChild(act);
+          }
+        })
+        .catch(err => console.error('Fout bij ophalen:', err));
 
       cell.onclick = () => openModal(dateStr);
     } else {
@@ -103,22 +103,25 @@ function renderCalendar() {
   }
 }
 
-
-
-
-
 function openModal(dateStr) {
   selectedDate = dateStr;
-  modalDate.textContent = `Corporate Onboarding on ${dateStr}`;
+  modalDate.textContent = \`Corporate Onboarding on \${dateStr}\`;
   activityOptions.innerHTML = "";
 
   activities.forEach(activity => {
     const btn = document.createElement("button");
     btn.textContent = activity;
     btn.onclick = () => {
-      localStorage.setItem("activity_" + selectedDate, activity);
-      modal.style.display = "none";
-      renderCalendar();
+      fetch(\`\${API_URL}/activities\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: selectedDate, activity })
+      })
+      .then(() => {
+        modal.style.display = "none";
+        renderCalendar();
+      })
+      .catch(err => console.error('Fout bij opslaan:', err));
     };
     activityOptions.appendChild(btn);
   });
@@ -128,24 +131,16 @@ function openModal(dateStr) {
 
 function removeActivity(dateStr, event) {
   event.stopPropagation();
-  localStorage.removeItem("activity_" + dateStr);
-  renderCalendar();
+  fetch(\`\${API_URL}/activities/\${dateStr}\`, {
+    method: 'DELETE'
+  })
+  .then(() => renderCalendar())
+  .catch(err => console.error('Fout bij verwijderen:', err));
 }
 
-closeModal.onclick = () => {
-  modal.style.display = "none";
-};
-
-prevMonth.onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  renderCalendar();
-};
-
-nextMonth.onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  renderCalendar();
-};
-
+closeModal.onclick = () => modal.style.display = "none";
+prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); renderCalendar(); };
+nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); renderCalendar(); };
 addNote.onclick = () => {
   const note = document.createElement("div");
   note.className = "note";
@@ -155,96 +150,3 @@ addNote.onclick = () => {
 };
 
 renderCalendar();
-
-
-
-const durations = {
-  "HR Welcome Tour": "1u",
-  "Intro IT (equipment, access, apps)": "2u30",
-  "Welcome mentor": "1u",
-  "Welcome N+1": "2u30",
-  "Welcome team (1-to-1s)": "1u",
-  "Intro VTQ (group)": "1u",
-  "Intro HR (systems & info)": "2u",
-  "Intro Sales": "2u",
-  "Intro Solutions & KAM": "2u",
-  "Intro Finance": "1u",
-  "Intro Sales Vet BE": "2u",
-  "Intro Sales Vet/Retail NL": "2u",
-  "Intro Sales Pharma": "2u",
-  "Intro BI & IT": "1u",
-  "Intro Communication": "1u",
-  "Intro Corporate Communication & CSR": "1u",
-  "Intro E-Commerce": "1u",
-  "Intro Marketing": "1.5u"
-};
-
-function addTooltips() {
-  document.querySelectorAll('#activityOptions button').forEach(btn => {
-    const label = btn.textContent.trim();
-    if (durations[label]) {
-      btn.title = 'Duur: ' + durations[label];
-    }
-  });
-
-  document.querySelectorAll('.activity').forEach(el => {
-    const text = el.textContent.trim().replace(/ ×$/, '');
-    if (durations[text]) {
-      el.title = 'Duur: ' + durations[text];
-    }
-  });
-}
-
-const obsConfig = { childList: true, subtree: true };
-const activityObserver = new MutationObserver(addTooltips);
-activityObserver.observe(document.body, obsConfig);
-
-function updatePlannedList() {
-  const list = document.getElementById("plannedActivities");
-  if (!list) return;
-  list.innerHTML = "";
-
-  const entries = Object.keys(localStorage)
-    .filter(key => key.startsWith("activity_"))
-    .map(key => {
-      const date = key.replace("activity_", "");
-      return { date, text: localStorage.getItem(key) };
-    })
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  for (const { date, text } of entries) {
-    const li = document.createElement("li");
-    li.textContent = `${date}: ${text}`;
-    li.style.cursor = "pointer";
-    li.onclick = () => {
-      const [year, month, day] = date.split("-").map(Number);
-      current = new Date(year, month - 1, day);
-      renderCalendar();
-      setTimeout(() => {
-        const el = document.querySelector(`[data-date='${date}']`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          el.classList.add("highlight");
-          setTimeout(() => el.classList.remove("highlight"), 2000);
-        }
-      }, 100);
-    };
-    list.appendChild(li);
-  }
-}
-
-const originalSetItem = localStorage.setItem;
-localStorage.setItem = function(key, value) {
-  originalSetItem.apply(this, arguments);
-  updatePlannedList();
-};
-window.addEventListener("DOMContentLoaded", updatePlannedList);
-
-
-
-document.getElementById('plannedActivities').addEventListener('click', function(e) {
-  if (e.target && e.target.tagName === 'LI') {
-    const dateText = e.target.textContent.split(':')[0];
-    goToDate(dateText.trim());
-  }
-});

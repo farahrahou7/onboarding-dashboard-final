@@ -7,11 +7,10 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     const activities = await collection.find({}).toArray();
-    res.json(activities);Add commentMore actions
+    res.json(activities);
   } else if (req.method === "POST") {
     const activity = req.body;
     await collection.insertOne(activity);
     res.status(201).json({ message: "Activity saved" });
   }
 }
-

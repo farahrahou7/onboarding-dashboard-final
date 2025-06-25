@@ -1,176 +1,173 @@
-from pathlib import Path
 
-# Set the output path
-output_path = Path("/mnt/data/script.js")
+// script.js – met volledige MongoDB fetch integratie
 
-# Full fixed script.js content for calendar, notes, and materials integration
-fixed_script = """
-const calendarEl = document.getElementById("calendarDays");
-const plannedActivitiesList = document.getElementById("planned-activities");
-const noteForm = document.getElementById("note-form");
-const noteInput = document.getElementById("note");
-const noteList = document.getElementById("note-list");
-const checklistContainer = document.getElementById("checklist");
+const calendarDays = document.getElementById("calendarDays");
+const monthYear = document.getElementById("monthYear");
+const prevMonth = document.getElementById("prevMonth");
+const nextMonth = document.getElementById("nextMonth");
+const modal = document.getElementById("activityModal");
+const modalDate = document.getElementById("modalDate");
+const activityOptions = document.getElementById("activityOptions");
+const closeModal = document.getElementById("closeModal");
+const notesContainer = document.getElementById("notesContainer");
+const addNote = document.getElementById("addNote");
 
-const userId = "user123"; // hardcoded user ID for demo
+let current = new Date(2025, 0);
+let selectedDate = null;
 
-// ---- CALENDAR ----
-function renderCalendar(days) {
-  calendarEl.innerHTML = "";
-  days.forEach(day => {
-    const div = document.createElement("div");
-    div.className = `calendar-day ${day.currentMonth ? "" : "prev-next-month"}`;
-    div.textContent = day.date;
-    div.dataset.date = day.fullDate;
+const activitiesList = [
+  "HR Welcome Tour",
+  "Intro IT (equipment, access, apps)",
+  "Welcome mentor",
+  "Welcome N+1",
+  "Welcome team (1-to-1s)",
+  "Intro VTQ (group)",
+  "Intro HR (systems & info)",
+  "Intro Sales",
+  "Intro Solutions & KAM",
+  "Intro Finance",
+  "Intro Sales Vet BE",
+  "Intro Sales Vet/Retail NL",
+  "Intro Sales Pharma",
+  "Intro BI & IT",
+  "Intro Communication",
+  "Intro Corporate Communication & CSR",
+  "Intro E-Commerce",
+  "Intro Marketing"
+];
 
-    div.addEventListener("click", () => {
-      const title = prompt("Training name:");
-      if (!title) return;
-
-      const activity = { title, date: day.fullDate, userId };
-
-      fetch("https://onboarding-dashboard-final.onrender.com/api/calendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(activity)
-      })
-      .then(res => res.json())
-      .then(saved => {
-        addActivityToSidebar(saved);
-      });
-    });
-
-    calendarEl.appendChild(div);
-  });
+async function fetchData(url) {
+  const res = await fetch(url);
+  return await res.json();
 }
 
-function addActivityToSidebar(activity) {
-  const li = document.createElement("li");
-  li.textContent = `${activity.date} - ${activity.title}`;
-  li.dataset.id = activity._id;
-  li.addEventListener("click", () => {
-    if (confirm("Verwijderen?")) {
-      fetch(\`https://onboarding-dashboard-final.onrender.com/api/calendar/\${activity._id}\`, {
-        method: "DELETE"
-      }).then(() => li.remove());
-    }
-  });
-  plannedActivitiesList.appendChild(li);
-}
-
-function generateDays(year, month) {
-  const days = [];
-  const date = new Date(year, month, 1);
-  const firstDay = date.getDay() || 7;
-  const prevLast = new Date(year, month, 0).getDate();
-  const currLast = new Date(year, month + 1, 0).getDate;
-
-  for (let i = firstDay - 1; i > 0; i--) {
-    const d = prevLast - i + 1;
-    days.push({ date: d, fullDate: formatDate(year, month - 1, d), currentMonth: false });
-  }
-
-  for (let d = 1; d <= currLast; d++) {
-    days.push({ date: d, fullDate: formatDate(year, month, d), currentMonth: true });
-  }
-
-  const total = Math.ceil(days.length / 7) * 7;
-  for (let i = days.length + 1; i <= total; i++) {
-    const d = i - days.length;
-    days.push({ date: d, fullDate: formatDate(year, month + 1, d), currentMonth: false });
-  }
-
-  return days;
-}
-
-function formatDate(y, m, d) {
-  const mm = String(m + 1).padStart(2, "0");
-  const dd = String(d).padStart(2, "0");
-  return \`\${y}-\${mm}-\${dd}\`;
-}
-
-const today = new Date();
-const currentYear = today.getFullYear();
-const currentMonth = today.getMonth();
-const days = generateDays(currentYear, currentMonth);
-renderCalendar(days);
-
-// Load existing activities
-fetch(\`https://onboarding-dashboard-final.onrender.com/api/calendar/\${userId}\`)
-  .then(res => res.json())
-  .then(activities => activities.forEach(addActivityToSidebar));
-
-// ---- NOTES ----
-noteForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const text = noteInput.value.trim();
-  if (!text) return;
-  const note = { text, userId };
-
-  fetch("https://onboarding-dashboard-final.onrender.com/api/notes", {
+async function saveData(url, body) {
+  await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(note)
-  })
-  .then(res => res.json())
-  .then(saved => {
-    const li = document.createElement("li");
-    li.textContent = saved.text;
-    li.dataset.id = saved._id;
-    li.addEventListener("click", () => {
-      if (confirm("Verwijderen?")) {
-        fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${saved._id}\`, {
-          method: "DELETE"
-        }).then(() => li.remove());
+    body: JSON.stringify(body),
+  });
+}
+
+async function renderCalendar() {
+  calendarDays.innerHTML = "";
+  const year = current.getFullYear();
+  const month = current.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const daysInMonth = lastDayOfMonth.getDate();
+  const monthName = current.toLocaleString('en-GB', { month: 'long' });
+  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+
+  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
+  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const activities = await fetchData("/pages/api/activities");
+
+  for (let i = 0; i < totalCells; i++) {
+    const cell = document.createElement("div");
+    const currentDay = i - firstWeekday + 1;
+
+    const isWeekend = i % 7 === 5 || i % 7 === 6;
+    if (isWeekend) {
+      cell.style.display = "none";
+    }
+
+    if (i < firstWeekday) {
+      const dayNum = daysInPrevMonth - firstWeekday + i + 1;
+      cell.className = "day inactive";
+      cell.textContent = dayNum;
+    } else if (currentDay > 0 && currentDay <= daysInMonth) {
+      const date = new Date(year, month, currentDay);
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
+
+      cell.className = "day";
+      cell.textContent = currentDay;
+      cell.dataset.date = dateStr;
+
+      const saved = activities.find(a => a.date === dateStr);
+      if (saved) {
+        const act = document.createElement("div");
+        act.className = "activity";
+        act.innerHTML = `${saved.activity} <span style="color:red; float:right; cursor:pointer;" onclick="removeActivity('${dateStr}', event)">×</span>`;
+        cell.appendChild(act);
       }
-    });
-    noteList.appendChild(li);
-    noteInput.value = "";
-  });
-});
 
-// Load existing notes
-fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${userId}\`)
-  .then(res => res.json())
-  .then(notes => {
-    notes.forEach(note => {
-      const li = document.createElement("li");
-      li.textContent = note.text;
-      li.dataset.id = note._id;
-      li.addEventListener("click", () => {
-        if (confirm("Verwijderen?")) {
-          fetch(\`https://onboarding-dashboard-final.onrender.com/api/notes/\${note._id}\`, {
-            method: "DELETE"
-          }).then(() => li.remove());
-        }
-      });
-      noteList.appendChild(li);
-    });
+      cell.onclick = () => openModal(dateStr);
+    } else {
+      cell.className = "day empty";
+    }
+
+    calendarDays.appendChild(cell);
+  }
+
+  updatePlannedList();
+}
+
+async function openModal(dateStr) {
+  selectedDate = dateStr;
+  modalDate.textContent = `Corporate Onboarding on ${dateStr}`;
+  activityOptions.innerHTML = "";
+
+  activitiesList.forEach(activity => {
+    const btn = document.createElement("button");
+    btn.textContent = activity;
+    btn.onclick = async () => {
+      await saveData("/pages/api/activities", { date: selectedDate, activity });
+      modal.style.display = "none";
+      renderCalendar();
+    };
+    activityOptions.appendChild(btn);
   });
 
-// ---- CHECKLIST ----
-fetch(\`https://onboarding-dashboard-final.onrender.com/api/checklist/\${userId}\`)
-  .then(res => res.json())
-  .then(items => {
-    checklistContainer.innerHTML = "";
-    items.forEach(item => {
-      const div = document.createElement("div");
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = item.checked;
-      input.addEventListener("change", () => {
-        fetch(\`https://onboarding-dashboard-final.onrender.com/api/checklist/\${item._id}\`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ checked: input.checked })
-        });
-      });
-      div.append(input, item.title);
-      checklistContainer.appendChild(div);
-    });
-  });
-"""
+  modal.style.display = "flex";
+}
 
-# Write the fixed script to file
-output_path.write_text(fixed_script.strip())
-output_path
+async function removeActivity(dateStr, event) {
+  event.stopPropagation();
+  await fetch("/pages/api/activities", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ date: dateStr }),
+  });
+  renderCalendar();
+}
+
+closeModal.onclick = () => modal.style.display = "none";
+prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); renderCalendar(); };
+nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); renderCalendar(); };
+
+addNote.onclick = async () => {
+  const note = document.createElement("div");
+  note.className = "note";
+  note.contentEditable = true;
+  note.textContent = "Typ hier je notitie...";
+  notesContainer.appendChild(note);
+
+  await saveData("/pages/api/notes", { text: note.textContent });
+};
+
+async function updatePlannedList() {
+  const list = document.getElementById("plannedActivities");
+  if (!list) return;
+  list.innerHTML = "";
+
+  const activities = await fetchData("/pages/api/activities");
+
+  const sorted = activities.sort((a, b) => new Date(a.date) - new Date(b.date));
+  for (const { date, activity } of sorted) {
+    const li = document.createElement("li");
+    li.textContent = `${date}: ${activity}`;
+    li.style.cursor = "pointer";
+    li.onclick = () => {
+      const [year, month, day] = date.split("-").map(Number);
+      current = new Date(year, month - 1, day);
+      renderCalendar();
+    };
+    list.appendChild(li);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderCalendar);

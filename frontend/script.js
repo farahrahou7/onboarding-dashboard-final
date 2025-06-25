@@ -79,7 +79,7 @@ function openModal(date) {
 }
 
 async function saveActivity(date, activity) {
-  await fetch(`${apiBase}/activities`, {
+  await fetch(`${apiBase}/calendar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ date, activity })

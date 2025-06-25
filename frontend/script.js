@@ -1,3 +1,5 @@
+# Ik ga het script.js-bestand vervangen met de volledig werkende versie zoals hierboven beschreven.
+fixed_script = """
 const calendarEl = document.getElementById("calendarDays");
 const plannedActivitiesList = document.getElementById("plannedActivities");
 const userId = "user123";
@@ -85,9 +87,8 @@ let currentMonth = today.getMonth();
 
 function updateCalendar() {
   const monthYear = document.getElementById("monthYear");
-  monthYear.textContent = `${today.toLocaleString("default", {
-    month: "long"
-  })} ${currentYear}`;
+  const thisDate = new Date(currentYear, currentMonth);
+  monthYear.textContent = thisDate.toLocaleString("default", { month: "long", year: "numeric" });
   const days = generateDays(currentYear, currentMonth);
   renderCalendar(days);
 }
@@ -115,3 +116,11 @@ updateCalendar();
 fetch(`https://onboarding-dashboard-final.onrender.com/api/calendar/${userId}`)
   .then(res => res.json())
   .then(data => data.forEach(addActivityToSidebar));
+"""
+
+# Schrijf naar bestand
+script_path = "/mnt/data/script.js"
+with open(script_path, "w", encoding="utf-8") as f:
+    f.write(fixed_script.strip())
+
+script_path

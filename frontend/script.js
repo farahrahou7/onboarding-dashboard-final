@@ -5,7 +5,7 @@ output_path = Path("/mnt/data/script.js")
 
 # Full fixed script.js content for calendar, notes, and materials integration
 fixed_script = """
-const calendarEl = document.getElementById("calendar");
+const calendarEl = document.getElementById("calendarDays");
 const plannedActivitiesList = document.getElementById("planned-activities");
 const noteForm = document.getElementById("note-form");
 const noteInput = document.getElementById("note");

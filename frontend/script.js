@@ -1,3 +1,4 @@
+
 const API_BASE_URL = 'https://onboarding-dashboard-final.onrender.com/api';
 
 const calendarContainer = document.querySelector('#calendarDays');
@@ -7,61 +8,65 @@ const nextBtn = document.querySelector('#nextMonth');
 
 let currentDate = new Date();
 
-function generateCalendar(year, month) {
-  const firstDay = new Date(year, month, 1).getDay();
+function generateWorkdaysCalendar(year, month) {
+  calendarContainer.innerHTML = '';
+
+  const firstDate = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  calendarContainer.innerHTML = ''; // Clear old days
+  let dayCounter = 1;
+  let weekdayCount = 0;
 
-  const startDay = firstDay === 0 ? 7 : firstDay;
-  const prevMonthDays = new Date(year, month, 0).getDate();
+  while (dayCounter <= daysInMonth) {
+    const date = new Date(year, month, dayCounter);
+    const dayOfWeek = date.getDay();
 
-  for (let i = startDay - 2; i >= 0; i--) {
-    const day = document.createElement('div');
-    day.className = 'calendar-cell muted';
-    day.textContent = prevMonthDays - i;
-    calendarContainer.appendChild(day);
-  }
+    // Skip Saturday (6) and Sunday (0)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      cell.textContent = dayCounter;
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const cell = document.createElement('div');
-    cell.className = 'calendar-cell';
-    cell.textContent = day;
-    cell.addEventListener('click', async () => {
-      const activity = prompt(`Add activity on ${year}-${month + 1}-${day}:`);
-      if (activity) {
-        await fetch(`${API_BASE_URL}/calendar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
-            activity
-          })
-        });
-        alert(`Activity added on ${day}`);
-      }
-    });
-    calendarContainer.appendChild(cell);
+      cell.addEventListener('click', async () => {
+        const activity = prompt(`Add activity on ${year}-${month + 1}-${dayCounter}:`);
+        if (activity) {
+          await fetch(`${API_BASE_URL}/calendar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              date: `${year}-${(month + 1).toString().padStart(2, '0')}-${dayCounter.toString().padStart(2, '0')}`,
+              activity
+            })
+          });
+          alert(`Activity added on ${dayCounter}`);
+        }
+      });
+
+      calendarContainer.appendChild(cell);
+      weekdayCount++;
+    }
+
+    dayCounter++;
   }
 
   monthYearLabel.textContent = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+  generateWorkdaysCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
   prevBtn.addEventListener('click', () => {
     currentDate.setMonth(currentDate.getMonth() - 1);
-    generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    generateWorkdaysCalendar(currentDate.getFullYear(), currentDate.getMonth());
   });
 
   nextBtn.addEventListener('click', () => {
     currentDate.setMonth(currentDate.getMonth() + 1);
-    generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    generateWorkdaysCalendar(currentDate.getFullYear(), currentDate.getMonth());
   });
 });
 
-// Checklist
+// Checklist logic
 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
   checkbox.addEventListener('change', async () => {
     await fetch(`${API_BASE_URL}/checklist`, {
@@ -75,7 +80,7 @@ document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
   });
 });
 
-// Notes
+// Notes logic
 document.querySelector('#addNote')?.addEventListener('click', async () => {
   const note = prompt('Add a note:');
   if (note) {

@@ -18,10 +18,10 @@ body {
   border-bottom: 1px solid #e0e0e0;
 }
 .top-bar img {
-  height: 50px;
+  height: 45px;
 }
 .top-bar h1 {
-  font-size: 20px;
+  font-size: 18px;
   color: #2d3e50;
 }
 .main-area {
@@ -29,15 +29,15 @@ body {
   flex-grow: 1;
 }
 .sidebar {
-  width: 260px;
+  width: 250px;
   background-color: #ffffff;
-  padding: 20px;
+  padding: 15px;
   border-right: 1px solid #e0e0e0;
   overflow-y: auto;
 }
 .sidebar h2 {
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 15px;
+  margin-bottom: 8px;
   color: #333;
 }
 .sidebar ul {
@@ -45,14 +45,14 @@ body {
   padding-left: 0;
 }
 .sidebar li {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .notes-section button {
   margin-bottom: 10px;
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -73,16 +73,57 @@ body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 10px;
 }
-.calendar-grid.days div {
-  background-color: #fff;
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.calendar-days .day {
+  background-color: #ffffff;
   border: 1px solid #cce5cc;
   padding: 10px;
-  min-height: 80px;
-  border-radius: 8px;
+  min-height: 70px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
 }
-.calendar-grid.days .inactive {
-  color: #b0b0b0;
+.calendar-days .inactive {
   background-color: #f0f0f0;
+  color: #aaa;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+}
+.modal h3 {
+  margin-top: 0;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+}
+.tag-list button {
+  background-color: #e0f2f1;
+  border: 1px solid #4CAF50;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
 }

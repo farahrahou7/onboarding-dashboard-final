@@ -82,28 +82,28 @@ async function saveActivity(date, activity) {
   await fetch(`${apiBase}/calendar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date, activity })
+    body: JSON.stringify({ date, title: activity })
   });
   modal.style.display = "none";
   renderCalendar();
 }
 
 async function loadActivities() {
-  const res = await fetch(`${apiBase}/activities`);
+  const res = await fetch(`${apiBase}/calendar`);
   const items = await res.json();
   plannedActivitiesList.innerHTML = "";
 
-  items.forEach(({ date, activity }) => {
+  items.forEach(({ date, title }) => {
     const cell = [...document.querySelectorAll(".day")].find(d => d.dataset.date === date);
     if (cell) {
       const span = document.createElement("div");
       span.classList.add("activity");
-      span.textContent = activity;
+      span.textContent = title;
       cell.appendChild(span);
     }
 
     const li = document.createElement("li");
-    li.textContent = `${date} – ${activity}`;
+    li.textContent = `${date} – ${title}`;
     plannedActivitiesList.appendChild(li);
   });
 }

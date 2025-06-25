@@ -1,6 +1,6 @@
 // script.js – met volledige MongoDB fetch integratie
 
-const calendarDays = document.getElementById("calendarDays");
+const calendarDays = document.getElementById("calendar");
 const monthYear = document.getElementById("monthYear");
 const prevMonth = document.getElementById("prevMonth");
 const nextMonth = document.getElementById("nextMonth");

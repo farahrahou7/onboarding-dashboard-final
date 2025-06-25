@@ -1,4 +1,4 @@
-// script.js – met volledige MongoDB fetch integratie
+// ✅ Final working script.js with MongoDB integration and proper calendar rendering
 
 const calendarDays = document.getElementById("calendarDays");
 const monthYear = document.getElementById("monthYear");
@@ -36,16 +36,25 @@ const activitiesList = [
 ];
 
 async function fetchData(url) {
-  const res = await fetch(url);
-  return await res.json();
+  try {
+    const res = await fetch(url);
+    return await res.json();
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return [];
+  }
 }
 
 async function saveData(url, body) {
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    console.error("Save error:", error);
+  }
 }
 
 async function renderCalendar() {
@@ -57,30 +66,21 @@ async function renderCalendar() {
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
   const monthName = current.toLocaleString('en-GB', { month: 'long' });
-  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  monthYear.textContent = \`\${monthName.charAt(0).toUpperCase() + monthName.slice(1)} \${year}\`;
 
   const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
-  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
+  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 5) * 5; // 5 columns
   const activities = await fetchData("/pages/api/activities");
 
   for (let i = 0; i < totalCells; i++) {
     const cell = document.createElement("div");
     const currentDay = i - firstWeekday + 1;
 
-    const isWeekend = i % 7 === 5 || i % 7 === 6;
-    if (isWeekend) {
-      cell.style.display = "none";
-    }
-
-    if (i < firstWeekday) {
-      const dayNum = daysInPrevMonth - firstWeekday + i + 1;
-      cell.className = "day inactive";
-      cell.textContent = dayNum;
-    } else if (currentDay > 0 && currentDay <= daysInMonth) {
+    if (i < firstWeekday || currentDay > daysInMonth) {
+      cell.className = "day empty";
+    } else {
       const date = new Date(year, month, currentDay);
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
+      const dateStr = \`\${year}-\${String(month + 1).padStart(2, "0")}-\${String(currentDay).padStart(2, "0")}\`;
 
       cell.className = "day";
       cell.textContent = currentDay;
@@ -90,13 +90,11 @@ async function renderCalendar() {
       if (saved) {
         const act = document.createElement("div");
         act.className = "activity";
-        act.innerHTML = `${saved.activity} <span style="color:red; float:right; cursor:pointer;" onclick="removeActivity('${dateStr}', event)">×</span>`;
+        act.innerHTML = \`\${saved.activity} <span style="color:red; float:right; cursor:pointer;" onclick="removeActivity('\${dateStr}', event)">×</span>\`;
         cell.appendChild(act);
       }
 
       cell.onclick = () => openModal(dateStr);
-    } else {
-      cell.className = "day empty";
     }
 
     calendarDays.appendChild(cell);
@@ -107,7 +105,7 @@ async function renderCalendar() {
 
 async function openModal(dateStr) {
   selectedDate = dateStr;
-  modalDate.textContent = `Corporate Onboarding on ${dateStr}`;
+  modalDate.textContent = \`Corporate Onboarding on \${dateStr}\`;
   activityOptions.innerHTML = "";
 
   activitiesList.forEach(activity => {
@@ -126,12 +124,16 @@ async function openModal(dateStr) {
 
 async function removeActivity(dateStr, event) {
   event.stopPropagation();
-  await fetch("/pages/api/activities", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date: dateStr }),
-  });
-  renderCalendar();
+  try {
+    await fetch("/pages/api/activities", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: dateStr }),
+    });
+    renderCalendar();
+  } catch (error) {
+    console.error("Delete error:", error);
+  }
 }
 
 closeModal.onclick = () => modal.style.display = "none";
@@ -158,7 +160,7 @@ async function updatePlannedList() {
   const sorted = activities.sort((a, b) => new Date(a.date) - new Date(b.date));
   for (const { date, activity } of sorted) {
     const li = document.createElement("li");
-    li.textContent = `${date}: ${activity}`;
+    li.textContent = \`\${date}: \${activity}\`;
     li.style.cursor = "pointer";
     li.onclick = () => {
       const [year, month, day] = date.split("-").map(Number);

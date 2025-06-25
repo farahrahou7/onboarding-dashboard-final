@@ -3,60 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Corporate Onboarding Dashboard</title>
+  <title>Vetoquinol Onboarding Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="dashboard">
-    <aside class="sidebar">
-      <div class="logo-container">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Vetoquinol_logo_2020.svg/2560px-Vetoquinol_logo_2020.svg.png" alt="Vetoquinol Logo" />
-      </div>
-      <h2>Onboarding Dashboard</h2>
-      <section>
-        <h3>Equipment</h3>
-        <ul id="equipment-list">
-          <li><input type="checkbox" value="Headset"> Headset</li>
-          <li><input type="checkbox" value="Beamer"> Beamer</li>
-          <li><input type="checkbox" value="Printer"> Printer</li>
-          <li><input type="checkbox" value="PC"> PC</li>
-          <li><input type="checkbox" value="Keyboard"> Keyboard</li>
-          <li><input type="checkbox" value="Mouse"> Mouse</li>
-          <li><input type="checkbox" value="External Screen"> External Screen</li>
-          <li><input type="checkbox" value="Headphones"> Headphones</li>
-          <li><input type="checkbox" value="GSM"> GSM</li>
-          <li><input type="checkbox" value="Company Car"> Company Car</li>
-          <li><input type="checkbox" value="Fuel/Charging Card"> Fuel/Charging Card</li>
-        </ul>
-      </section>
-      <section class="notes-section">
-        <h3>Notes</h3>
-        <button id="addNoteBtn">+ Note</button>
-        <ul id="notesList"></ul>
-      </section>
-      <section>
-        <h3>Planned Activities</h3>
-        <ul id="activity-list"></ul>
-      </section>
-    </aside>
+    <header class="top-bar">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Vetoquinol_logo_2020.svg/2560px-Vetoquinol_logo_2020.svg.png" alt="Vetoquinol Logo" />
+      <h1>Corporate Onboarding Dashboard</h1>
+    </header>
+    <div class="main-area">
+      <aside class="sidebar">
+        <section>
+          <h2>Equipment</h2>
+          <ul id="equipment-list">
+            <li><input type="checkbox" value="Headset"> Headset</li>
+            <li><input type="checkbox" value="Beamer"> Beamer</li>
+            <li><input type="checkbox" value="Printer"> Printer</li>
+            <li><input type="checkbox" value="PC"> PC</li>
+            <li><input type="checkbox" value="Keyboard"> Keyboard</li>
+            <li><input type="checkbox" value="Mouse"> Mouse</li>
+            <li><input type="checkbox" value="External Screen"> External Screen</li>
+            <li><input type="checkbox" value="Headphones"> Headphones</li>
+            <li><input type="checkbox" value="GSM"> GSM</li>
+            <li><input type="checkbox" value="Company Car"> Company Car</li>
+            <li><input type="checkbox" value="Fuel/Charging Card"> Fuel/Charging Card</li>
+          </ul>
+        </section>
+        <section class="notes-section">
+          <h2>Notes</h2>
+          <button id="addNoteBtn">+ Note</button>
+          <ul id="notesList"></ul>
+        </section>
+        <section>
+          <h2>Planned Activities</h2>
+          <ul id="activity-list"></ul>
+        </section>
+      </aside>
 
-    <main class="content">
-      <header class="calendar-header">
-        <button id="prevMonth">&lt;</button>
-        <h2 id="monthYear"></h2>
-        <button id="nextMonth">&gt;</button>
-      </header>
-      <section class="calendar-grid">
-        <div class="day-label">Ma</div>
-        <div class="day-label">Di</div>
-        <div class="day-label">Wo</div>
-        <div class="day-label">Do</div>
-        <div class="day-label">Vr</div>
-      </section>
-      <section id="calendar" class="calendar-grid days"></section>
-    </main>
+      <main class="content">
+        <div class="calendar-header">
+          <button id="prevMonth">&lt;</button>
+          <h2 id="monthYear"></h2>
+          <button id="nextMonth">&gt;</button>
+        </div>
+        <div class="calendar-grid day-labels">
+          <div>Ma</div><div>Di</div><div>Wo</div><div>Do</div><div>Vr</div>
+        </div>
+        <div id="calendar" class="calendar-grid days"></div>
+      </main>
+    </div>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>

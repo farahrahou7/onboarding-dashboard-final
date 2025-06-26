@@ -7,12 +7,10 @@ const monthYear = document.getElementById("monthYear");
 const prevMonth = document.getElementById("prevMonth");
 const nextMonth = document.getElementById("nextMonth");
 const plannedActivitiesList = document.getElementById("plannedActivities");
-
 const modal = document.getElementById("activityModal");
 const modalDate = document.getElementById("modalDate");
 const activityOptions = document.getElementById("activityOptions");
 const closeModal = document.getElementById("closeModal");
-
 const durations = {
             'Rondleiding & welkom HR': '1u',
             'Welkom IT (materiaal, toegangen, apps)': '2u30',
@@ -98,11 +96,15 @@ function renderActivitiesInCell(cell, dateStr) {
     span.classList.add("activity");
     span.textContent = act.title;
 
+    const duration = durations[act.title] || "Onbekend";
+
+    span.title = `Duur: ${duration}`;
+
     const removeBtn = document.createElement("button");
     removeBtn.className = "remove-btn";
     removeBtn.textContent = "×";
     removeBtn.onclick = async (e) => {
-      e.stopPropagation(); // voorkom dat klik de modal opent
+      e.stopPropagation();
       await removeActivity(act._id);
     };
 
@@ -201,11 +203,16 @@ window.addEventListener("click", e => { if (e.target === modal) modal.style.disp
 
 // Activiteit toevoegen
 async function addActivity(date, title) {
+  // Verzamel alle aangevinkte materialen
+  const checkedItems = Array.from(document.querySelectorAll('#materials input:checked'))
+    .map(checkbox => checkbox.parentElement.textContent.trim());
+
   await fetch(`${apiBase}/calendar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, date, title })
+    body: JSON.stringify({ userId, date, title, equipment: checkedItems })
   });
+
   await loadActivities();
 }
 

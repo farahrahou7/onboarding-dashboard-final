@@ -13,14 +13,23 @@ router.get("/:userId", async (req: Request, res: Response) => {
   }
 });
 
-// ✅ Voeg een nieuwe activiteit toe
+// ✅ Voeg een nieuwe activiteit toe (inclusief materiaal)
 router.post("/", async (req: Request, res: Response) => {
+  const { title, date, userId, equipment } = req.body;
+
   try {
-    const newItem = new CalendarActivity(req.body);
-    const savedItem = await newItem.save();
-    res.status(201).json(savedItem);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to save calendar activity" });
+    const newItem = new CalendarActivity({
+      title,
+      date,
+      userId,
+      equipment: Array.isArray(equipment) ? equipment : []  // Fallback
+    });
+    console.log("Ontvangen body:", req.body);
+    await newItem.save();
+    res.status(201).json(newItem);
+  } catch (err) {
+    console.error("Fout bij opslaan activiteit:", err);
+    res.status(500).json({ error: "Failed to add activity" });
   }
 });
 

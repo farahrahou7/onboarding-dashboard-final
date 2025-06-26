@@ -25,8 +25,7 @@ function renderCalendar() {
   const startDay = (firstDay.getDay() + 6) % 7;
 
   const prevMonthLastDay = new Date(year, month, 0).getDate();
-  const totalCells = startDay + daysInMonth;
-  const rows = Math.ceil(totalCells / 5) * 5;
+  const rows = 25; // ✅ forceer 5 weken met 5 dagen per week
 
   const monthName = current.toLocaleString("nl-NL", { month: "long" });
   monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
@@ -53,12 +52,12 @@ function renderCalendar() {
 
         const activity = { title, date: dateStr, userId };
 
-        const res = await fetch(`${apiBase}/calendar`, {
+        await fetch(`${apiBase}/calendar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(activity)
         });
-        const saved = await res.json();
+
         renderCalendar();
       });
     }

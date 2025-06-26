@@ -1,135 +1,138 @@
 const apiBase = "https://onboarding-dashboard-final.onrender.com/api";
 const userId = "user123";
 
-// Kalender elementen
+// DOM-elementen
 const calendarDays = document.getElementById("calendarDays");
 const monthYear = document.getElementById("monthYear");
 const prevMonth = document.getElementById("prevMonth");
 const nextMonth = document.getElementById("nextMonth");
 const plannedActivitiesList = document.getElementById("plannedActivities");
 
+const modal = document.getElementById("activityModal");
+const modalDate = document.getElementById("modalDate");
+const activityOptions = document.getElementById("activityOptions");
+const closeModal = document.getElementById("closeModal");
+
+const durations = {
+            'Rondleiding & welkom HR': '1u',
+            'Welkom IT (materiaal, toegangen, apps)': '2u30',
+            'Welkom meter': '1u',
+            'Welkom N+1': '2u30',
+            "Welcome team (121's)": '2u',
+            'Intro VTQ (in groep)': '2u',
+            'Intro HR (HR systems & info)': '2u',
+            'Intro sales': '2u',
+            'Intro Solutions & KAM': '2u',
+            'Intro Finance': '1u',
+            'Intro sales manager Vet BE': '2u',
+            'Intro sales manager Vet/retail NL': '2u',
+            'Intro Sales manager Pharma': '1u',
+            'Intro BI & IT': '1u',
+            'Intro Communication': '1u',
+            'intro Corporate com': '1u',
+            'Intro E-Commerce': '1u'
+        };
+
 let current = new Date();
+let dateActivities = {}; // bevat geplande activiteiten per datum
 
-function formatDate(y, m, d) {
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
+// 🗓 Kalender renderen (ma–vr)
 function renderCalendar() {
   calendarDays.innerHTML = "";
   const year = current.getFullYear();
   const month = current.getMonth();
 
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startDay = (firstDay.getDay() + 6) % 7;
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
 
-  const prevMonthLastDay = new Date(year, month, 0).getDate();
-  const rows = 25; // 5 weken × 5 werkdagen
+  // Start bij de maandag vóór de 1e van de maand
+  let startDate = new Date(firstDayOfMonth);
+  while (startDate.getDay() !== 1) {
+    startDate.setDate(startDate.getDate() - 1);
+  }
+
+  // Eindig bij de vrijdag ná de laatste dag van de maand
+  let endDate = new Date(lastDayOfMonth);
+  while (endDate.getDay() !== 5) {
+    endDate.setDate(endDate.getDate() + 1);
+  }
 
   const monthName = current.toLocaleString("nl-NL", { month: "long" });
   monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
 
-  for (let i = 0; i < rows; i++) {
-    const dayEl = document.createElement("div");
-    dayEl.classList.add("day");
-    const dayNum = i - startDay + 1;
+  const day = new Date(startDate);
+  while (day <= endDate) {
+    if (day.getDay() >= 1 && day.getDay() <= 5) { // alleen Ma-Vr
+      const cell = document.createElement("div");
+      cell.className = "day";
 
-    if (i < startDay) {
-      dayEl.textContent = prevMonthLastDay - (startDay - i - 1);
-      dayEl.classList.add("inactive");
-    } else if (dayNum > daysInMonth) {
-      dayEl.textContent = dayNum - daysInMonth;
-      dayEl.classList.add("inactive");
-    } else {
-      const dateStr = formatDate(year, month, dayNum);
-      dayEl.textContent = dayNum;
-      dayEl.dataset.date = dateStr;
+      const dayNum = day.getDate();
+      const dateStr = formatDate(day.getFullYear(), day.getMonth(), dayNum);
 
-      dayEl.addEventListener("click", async () => {
-        const title = prompt("Training toevoegen:");
-        if (!title) return;
+      cell.textContent = dayNum;
+      cell.dataset.date = dateStr;
 
-        const activity = { title, date: dateStr, userId };
+      if (day.getMonth() !== month) {
+        cell.classList.add("inactive"); // andere maand
+      }
 
-        await fetch(`${apiBase}/calendar`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(activity)
-        });
+      cell.addEventListener("click", () => {
+  openModal(dateStr);
+});
 
-        renderCalendar();
-      });
+      calendarDays.appendChild(cell);
+      renderActivitiesInCell(cell, dateStr);
     }
 
-    calendarDays.appendChild(dayEl);
+    day.setDate(day.getDate() + 1);
   }
 
   loadActivities();
 }
 
-async function loadActivities() {
-  const res = await fetch(`${apiBase}/calendar/${userId}`);
-  const items = await res.json();
-  plannedActivitiesList.innerHTML = "";
 
-  items.forEach(({ date, title, _id }) => {
-    const cell = [...document.querySelectorAll(".day")].find(d => d.dataset.date === date);
-    if (cell) {
-      const span = document.createElement("div");
-      span.classList.add("activity");
-      span.textContent = title;
-      cell.appendChild(span);
-    }
+// Toon activiteiten in cel
+function renderActivitiesInCell(cell, dateStr) {
+  (dateActivities[dateStr] || []).forEach(act => {
+    const span = document.createElement("div");
+    span.classList.add("activity");
+    span.textContent = act.title;
 
-    const li = document.createElement("li");
-    li.textContent = `${date} – ${title}`;
-    li.dataset.id = _id;
-    li.addEventListener("click", async () => {
-      if (confirm("Verwijderen?")) {
-        await fetch(`${apiBase}/calendar/${_id}`, { method: "DELETE" });
-        renderCalendar();
-      }
-    });
-    plannedActivitiesList.appendChild(li);
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "×";
+    removeBtn.onclick = async (e) => {
+      e.stopPropagation(); // voorkom dat klik de modal opent
+      await removeActivity(act._id);
+    };
+
+    span.appendChild(removeBtn);
+    cell.appendChild(span);
   });
 }
 
-// Navigatie
-prevMonth.onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  renderCalendar();
-};
-nextMonth.onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  renderCalendar();
-};
+// Laad alle activiteiten en her-render
+async function loadActivities() {
+  const res = await fetch(`${apiBase}/calendar/${userId}`);
+  const items = await res.json();
+  dateActivities = items.reduce((acc, it) => {
+    acc[it.date] = acc[it.date] || [];
+    acc[it.date].push(it);
+    return acc;
+  }, {});
+  refreshUI();
+}
 
-// Checklist
-document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
-  checkbox.addEventListener("change", async () => {
-    const label = checkbox.parentElement.textContent.trim();
-    await fetch(`${apiBase}/checklist`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: label, checked: checkbox.checked, userId })
-    });
-  });
-});
-
-async function loadChecklist() {
-  const res = await fetch(`${apiBase}/checklist/${userId}`);
-  const data = await res.json();
-  document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
-    const label = checkbox.parentElement.textContent.trim();
-    const item = data.find(d => d.title === label);
-    if (item) checkbox.checked = item.checked;
-  });
+// UI vernieuwen
+function refreshUI() {
+  monthYear.textContent = formatCurrentMonth();
+  renderCalendar();
+  renderPlannedList();
 }
 
 // Notes
 const notesContainer = document.getElementById("notesContainer");
-document.getElementById("addNote").onclick = async () => {
+document.getElementById("addNote").addEventListener("click", async () => {
   const text = prompt("Voeg een notitie toe:");
   if (!text) return;
   await fetch(`${apiBase}/notes`, {
@@ -138,7 +141,7 @@ document.getElementById("addNote").onclick = async () => {
     body: JSON.stringify({ text, userId })
   });
   loadNotes();
-};
+});
 
 async function loadNotes() {
   const res = await fetch(`${apiBase}/notes/${userId}`);
@@ -152,7 +155,82 @@ async function loadNotes() {
   });
 }
 
-// Initialisatie
-renderCalendar();
-loadChecklist();
-loadNotes();
+// Planned activities bar (links)
+function renderPlannedList() {
+  plannedActivitiesList.innerHTML = "";
+  Object.keys(dateActivities).forEach(date => {
+    dateActivities[date].forEach(it => {
+      const li = document.createElement("li");
+      li.textContent = `${date} – ${it.title}`;
+      li.dataset.id = it._id;
+      li.addEventListener("click", () => removeActivity(it._id));
+      plannedActivitiesList.appendChild(li);
+    });
+  });
+}
+
+// Modal openen
+function openModal(dateStr) {
+  modalDate.textContent = `Corporate Onboarding op ${dateStr}`;
+  activityOptions.innerHTML = "";
+
+  // Alle opties tonen
+  Object.keys(durations).forEach(title => {
+    const btn = document.createElement("button");
+    btn.textContent = title;
+    btn.title = `Duur: ${durations[title]}`;
+    btn.addEventListener("click", () => addActivity(dateStr, title));
+    activityOptions.appendChild(btn);
+  });
+  // Bestaande activiteiten
+  (dateActivities[dateStr] || []).forEach(act => {
+    const btn = document.createElement("button");
+    btn.classList.add("planned");
+    btn.textContent = act.title + " ×";
+    btn.title = `Verwijder`;
+    btn.addEventListener("click", () => removeActivity(act._id));
+    activityOptions.appendChild(btn);
+  });
+
+  modal.style.display = "flex";
+}
+
+// Modal sluiten
+closeModal.addEventListener("click", () => modal.style.display = "none");
+window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
+
+// Activiteit toevoegen
+async function addActivity(date, title) {
+  await fetch(`${apiBase}/calendar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, date, title })
+  });
+  await loadActivities();
+}
+
+// Activiteit verwijderen
+async function removeActivity(id) {
+  await fetch(`${apiBase}/calendar/${id}`, { method: "DELETE" });
+  await loadActivities();
+}
+
+// Helper functies
+function formatDate(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function formatCurrentMonth() {
+  const mn = current.toLocaleString("nl-NL",{month:"long"});
+  return `${mn.charAt(0).toUpperCase()+mn.slice(1)} ${current.getFullYear()}`;
+}
+
+// Navigatie
+prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); refreshUI(); };
+nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); refreshUI(); };
+
+// Quel de start
+document.addEventListener("DOMContentLoaded", () => {
+  loadActivities();
+  loadNotes();
+});

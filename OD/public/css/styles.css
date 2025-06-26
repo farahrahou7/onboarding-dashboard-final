@@ -191,10 +191,30 @@ button:hover {
 
 .activity {
   background-color: #e8f5e9;
-  padding: 4px;
+  padding: 4px 6px;
   border-radius: 4px;
+  font-size: 13px;
+  color: #2e7d32;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.activity .remove-btn {
+  background: none;
+  border: none;
+  color: #c0392b;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
 }
 
+.activity .remove-btn:hover {
+  color: #e74c3c;
+}
 .activity:hover {
   background-color: #d0ebd2;
 }

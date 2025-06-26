@@ -25,7 +25,7 @@ function renderCalendar() {
   const startDay = (firstDay.getDay() + 6) % 7;
 
   const prevMonthLastDay = new Date(year, month, 0).getDate();
-  const rows = 25; // ✅ forceer 5 weken met 5 dagen per week
+  const rows = 25; // 5 weken × 5 werkdagen
 
   const monthName = current.toLocaleString("nl-NL", { month: "long" });
   monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
@@ -112,17 +112,17 @@ document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) 
     await fetch(`${apiBase}/checklist`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ label, checked: checkbox.checked, userId })
+      body: JSON.stringify({ title: label, checked: checkbox.checked, userId })
     });
   });
 });
 
 async function loadChecklist() {
-  const res = await fetch(`${apiBase}/checklist`);
+  const res = await fetch(`${apiBase}/checklist/${userId}`);
   const data = await res.json();
   document.querySelectorAll("#materials input[type=checkbox]").forEach((checkbox) => {
     const label = checkbox.parentElement.textContent.trim();
-    const item = data.find(d => d.label === label);
+    const item = data.find(d => d.title === label);
     if (item) checkbox.checked = item.checked;
   });
 }
@@ -141,7 +141,7 @@ document.getElementById("addNote").onclick = async () => {
 };
 
 async function loadNotes() {
-  const res = await fetch(`${apiBase}/notes`);
+  const res = await fetch(`${apiBase}/notes/${userId}`);
   const notes = await res.json();
   notesContainer.innerHTML = "";
   notes.forEach(n => {

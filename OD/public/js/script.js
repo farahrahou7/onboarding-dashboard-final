@@ -12,24 +12,27 @@ const modalDate = document.getElementById("modalDate");
 const activityOptions = document.getElementById("activityOptions");
 const closeModal = document.getElementById("closeModal");
 const durations = {
-            'Rondleiding & welkom HR': '1u',
-            'Welkom IT (materiaal, toegangen, apps)': '2u30',
-            'Welkom meter': '1u',
-            'Welkom N+1': '2u30',
-            "Welcome team (121's)": '2u',
-            'Intro VTQ (in groep)': '2u',
-            'Intro HR (HR systems & info)': '2u',
-            'Intro sales': '2u',
-            'Intro Solutions & KAM': '2u',
-            'Intro Finance': '1u',
-            'Intro sales manager Vet BE': '2u',
-            'Intro sales manager Vet/retail NL': '2u',
-            'Intro Sales manager Pharma': '1u',
-            'Intro BI & IT': '1u',
-            'Intro Communication': '1u',
-            'intro Corporate com': '1u',
-            'Intro E-Commerce': '1u'
-        };
+  'Tour & welcome HR': '1h',
+  'Welcome IT (equipment, access, apps)': '2h30',
+  'Welcome godmother or godfather': '1h',
+  'Welcome N+1': '2h30',
+  "Welcome team (121's)": '2h',
+  'Intro VTQ (in group)': '2h',
+  'Intro HR (HR systems & info)': '2h',
+  'Intro sales': '2h',
+  'Intro Solutions & KAM': '2h',
+  'Intro Finance': '1h',
+  'Intro sales manager Vet BE': '2h',
+  'Intro sales manager Vet NL': '2h',
+  'Intro Sales manager Pharma': '1h',
+  'Intro BI & IT': '1h',
+  'Intro Communication': '1h',
+  'Intro Corporate Communication': '1h',
+  'Intro E-Commerce': '1h',
+  'Intro QANRA Pharmacovig': '1h',
+  'Intro Marketing': '1h'
+};
+
 
 let current = new Date();
 let dateActivities = {}; // bevat geplande activiteiten per datum
@@ -55,7 +58,7 @@ function renderCalendar() {
     endDate.setDate(endDate.getDate() + 1);
   }
 
-  const monthName = current.toLocaleString("nl-NL", { month: "long" });
+  const monthName = current.toLocaleString("en-EN", { month: "long" });
   monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
 
   const day = new Date(startDate);
@@ -75,8 +78,8 @@ function renderCalendar() {
       }
 
       cell.addEventListener("click", () => {
-  openModal(dateStr);
-});
+        openModal(dateStr);
+      });
 
       calendarDays.appendChild(cell);
       renderActivitiesInCell(cell, dateStr);
@@ -228,8 +231,8 @@ function formatDate(y, m, d) {
 }
 
 function formatCurrentMonth() {
-  const mn = current.toLocaleString("nl-NL",{month:"long"});
-  return `${mn.charAt(0).toUpperCase()+mn.slice(1)} ${current.getFullYear()}`;
+  const mn = current.toLocaleString("nl-NL", { month: "long" });
+  return `${mn.charAt(0).toUpperCase() + mn.slice(1)} ${current.getFullYear()}`;
 }
 
 // Navigatie

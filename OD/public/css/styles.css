@@ -151,6 +151,12 @@ button:hover {
   border: 1px solid #c3e6cd;
   margin: 3px 0;
 }
+.activity-options button:nth-last-child(-n+2) {
+  background: #f4eee9;
+  color: rgb(223, 223, 44);
+  border: 1px solid #c3e6cd;
+  margin: 3px 0;
+}
 
 .activity-options button {
   background: #f4eee9;

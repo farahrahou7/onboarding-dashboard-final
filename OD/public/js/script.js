@@ -29,14 +29,16 @@ const sessions = [
   { title: 'Intro Communication', duration: '1h', trainer: 'Candice Hamilton' },
   { title: 'Intro Corporate Communication', duration: '1h', trainer: 'Eva Swaab' },
   { title: 'Intro E-Commerce', duration: '1h', trainer: 'Birger De Geeter' },
-  { title: 'Intro QANRA Pharmacovig', duration: '1h', trainer: '' },
-  { title: 'Intro Marketing', duration: '1h', trainer: '' },
+  { title: 'Intro QANRA Pharmacovig', duration: '1h', trainer: 'Jeroen Lievens' },
+  { title: 'Intro Marketing', duration: '1h', trainer: 'Annick Janssen' },
+  { title: 'Safety', duration: 'NAV', trainer: 'Thomas Van Elst & Eva Swaab' },
+  { title: 'Pharmacovig', duration: 'NAV', trainer: 'Jeroen Lievens' },
 ];
 
 
 
 let current = new Date();
-let dateActivities = {}; // bevat geplande activiteiten per datum
+let dateActivities = {};
 
 // 🗓 Kalender renderen (ma–vr)
 function renderCalendar() {

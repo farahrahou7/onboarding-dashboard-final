@@ -186,13 +186,13 @@ function openModal(dateStr) {
   activityOptions.innerHTML = "";
 
   // Alle opties tonen
-  Object.keys(durations).forEach(title => {
-    const btn = document.createElement("button");
-    btn.textContent = title;
-    btn.title = `Duur: ${durations[title]}`;
-    btn.addEventListener("click", () => addActivity(dateStr, title));
-    activityOptions.appendChild(btn);
-  });
+  sessions.forEach(session => {
+  const btn = document.createElement("button");
+  btn.textContent = session.title;
+  btn.title = `Duur: ${session.duration}\nTrainer: ${session.trainer || "Onbekend"}`;
+  btn.addEventListener("click", () => addActivity(dateStr, session.title));
+  activityOptions.appendChild(btn);
+});
   // Bestaande activiteiten
   (dateActivities[dateStr] || []).forEach(act => {
     const btn = document.createElement("button");

@@ -11,27 +11,28 @@ const modal = document.getElementById("activityModal");
 const modalDate = document.getElementById("modalDate");
 const activityOptions = document.getElementById("activityOptions");
 const closeModal = document.getElementById("closeModal");
-const durations = {
-  'Tour & welcome HR': '1h',
-  'Welcome IT (equipment, access, apps)': '2h30',
-  'Welcome godmother or godfather': '1h',
-  'Welcome N+1': '2h30',
-  "Welcome team (121's)": '2h',
-  'Intro VTQ (in group)': '2h',
-  'Intro HR (HR systems & info)': '2h',
-  'Intro sales': '2h',
-  'Intro Solutions & KAM': '2h',
-  'Intro Finance': '1h',
-  'Intro sales manager Vet BE': '2h',
-  'Intro sales manager Vet NL': '2h',
-  'Intro Sales manager Pharma': '1h',
-  'Intro BI & IT': '1h',
-  'Intro Communication': '1h',
-  'Intro Corporate Communication': '1h',
-  'Intro E-Commerce': '1h',
-  'Intro QANRA Pharmacovig': '1h',
-  'Intro Marketing': '1h'
-};
+const sessions = [
+  { title: 'Tour & welcome HR', duration: '1h', trainer: '' },
+  { title: 'Welcome IT (equipment, access, apps)', duration: '2h30', trainer: '' },
+  { title: 'Welcome godmother or godfather', duration: '1h', trainer: '' },
+  { title: 'Welcome N+1', duration: '2h30', trainer: '' },
+  { title: "Welcome team (121's)", duration: '2h', trainer: '' },
+  { title: 'Intro VTQ (in group)', duration: '2h', trainer: 'Lisa Smet' },
+  { title: 'Intro HR (HR systems & info)', duration: '2h', trainer: '' },
+  { title: 'Intro sales', duration: '2h', trainer: 'Bieke De Man' },
+  { title: 'Intro Solutions & KAM', duration: '2h', trainer: 'Lies Jordaens' },
+  { title: 'Intro Finance', duration: '1h', trainer: 'Peter De Veylder' },
+  { title: 'Intro sales manager Vet BE', duration: '2h', trainer: 'Lien De Schutter' },
+  { title: 'Intro sales manager Vet NL', duration: '2h', trainer: 'Elien Taffin' },
+  { title: 'Intro Sales manager Pharma', duration: '1h', trainer: 'Nancy Miceli' },
+  { title: 'Intro BI & IT', duration: '1h', trainer: 'Kristof Van Den Bosch' },
+  { title: 'Intro Communication', duration: '1h', trainer: 'Candice Hamilton' },
+  { title: 'Intro Corporate Communication', duration: '1h', trainer: 'Eva Swaab' },
+  { title: 'Intro E-Commerce', duration: '1h', trainer: 'Birger De Geeter' },
+  { title: 'Intro QANRA Pharmacovig', duration: '1h', trainer: '' },
+  { title: 'Intro Marketing', duration: '1h', trainer: '' },
+];
+
 
 
 let current = new Date();
@@ -99,9 +100,13 @@ function renderActivitiesInCell(cell, dateStr) {
     span.classList.add("activity");
     span.textContent = act.title;
 
-    const duration = durations[act.title] || "Onbekend";
+    // Zoek de sessie op in de sessions-array
+    const session = sessions.find(s => s.title === act.title);
+    const duration = session?.duration || "Onbekend";
+    const trainer = session?.trainer || "Trainer onbekend";
 
-    span.title = `Duur: ${duration}`;
+    // Tooltiptekst met duur + trainer
+    span.title = `Duur: ${duration}\nTrainer: ${trainer}`;
 
     const removeBtn = document.createElement("button");
     removeBtn.className = "remove-btn";
@@ -115,6 +120,7 @@ function renderActivitiesInCell(cell, dateStr) {
     cell.appendChild(span);
   });
 }
+
 
 // Laad alle activiteiten en her-render
 async function loadActivities() {
@@ -244,3 +250,15 @@ document.addEventListener("DOMContentLoaded", () => {
   loadActivities();
   loadNotes();
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      window.location.href = "login.html";
+    });
+  }
+});
+

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Onboarding Dashboard</title>
+  <link rel="stylesheet" href="css/login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Welkom bij het Onboarding Dashboard</h1>
+
+    <div class="form-toggle">
+      <button id="loginTab">Login</button>
+      <button id="registerTab">Registreer</button>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPassword" placeholder="Wachtwoord" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <form id="registerForm" class="auth-form hidden">
+      <input type="email" id="registerEmail" placeholder="Email" required />
+      <input type="password" id="registerPassword" placeholder="Wachtwoord" required />
+      <button type="submit">Registreer</button>
+    </form>
+
+    <p id="message"></p>
+  </div>
+
+  <script src="js/login.js" defer></script>
+</body>
+</html>

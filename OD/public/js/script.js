@@ -161,12 +161,44 @@ async function loadNotes() {
   const notes = await res.json();
   notesContainer.innerHTML = "";
   notes.forEach(n => {
-    const div = document.createElement("div");
-    div.className = "note";
-    div.textContent = n.text;
-    notesContainer.appendChild(div);
+  const noteDiv = document.createElement("div");
+  noteDiv.className = "note";
+
+  const noteText = document.createElement("span");
+  noteText.textContent = n.text;
+
+  const buttonGroup = document.createElement("div");
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "🗑️";
+  deleteBtn.className = "delete-note-btn";
+  deleteBtn.title = "Verwijder deze notitie";
+  deleteBtn.onclick = async () => {
+    await deleteNote(n._id);
+    loadNotes();
+  };
+  
+  buttonGroup.appendChild(deleteBtn);
+
+  noteDiv.appendChild(noteText);
+  noteDiv.appendChild(buttonGroup);
+  notesContainer.appendChild(noteDiv);
+});
+};
+
+async function deleteNote(id) {
+  await fetch(`${apiBase}/notes/${id}`, {
+    method: "DELETE",
   });
 }
+async function updateNote(id, newText) {
+  await fetch(`${apiBase}/notes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: newText }),
+  });
+}
+
 
 // Planned activities bar (links)
 function renderPlannedList() {

@@ -41,13 +41,22 @@ loginForm.onsubmit = async (e) => {
 
 registerForm.onsubmit = async (e) => {
   e.preventDefault();
-  const email = document.getElementById("registerEmail").value;
+
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim();
   const password = document.getElementById("registerPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if (password !== confirmPassword) {
+    message.textContent = "Wachtwoorden komen niet overeen.";
+    return;
+  }
 
   const res = await fetch("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, firstName, lastName }),
   });
 
   const data = await res.json();
@@ -58,3 +67,4 @@ registerForm.onsubmit = async (e) => {
     message.textContent = data.message;
   }
 };
+

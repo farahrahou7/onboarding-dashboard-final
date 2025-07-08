@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient, Db } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -6,18 +6,22 @@ dotenv.config();
 const uri = process.env.MONGO_URI as string;
 const client = new MongoClient(uri);
 
-let clientPromise: Promise<MongoClient>;
+let db: Db;
+let clientPromise: Promise<Db>;
 
-if (!global._mongoClientPromise) {
-  clientPromise = client.connect();
-  global._mongoClientPromise = clientPromise;
+if (!global._mongoDbPromise) {
+  clientPromise = client.connect().then((client) => {
+    db = client.db("onboarding"); // ✅ hier kiezen we expliciet de juiste database
+    return db;
+  });
+  global._mongoDbPromise = clientPromise;
 } else {
-  clientPromise = global._mongoClientPromise;
+  clientPromise = global._mongoDbPromise;
 }
 
 export default clientPromise;
 
 // Typing workaround for Node global
 declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoDbPromise: Promise<Db> | undefined;
 }

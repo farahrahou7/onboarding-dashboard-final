@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="css/styles.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script>
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "login.html";
-  }
-</script>
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "login.html";
+        }
+    </script>
 
 </head>
 
@@ -28,18 +28,18 @@
             <section>
                 <h2>Equipment</h2>
                 <ul id="materials">
-  <li><input type="checkbox" value="Headset"> Headset</li>
-  <li><input type="checkbox" value="Beamer"> Projector</li>
-  <li><input type="checkbox" value="Printer"> Printer</li>
-  <li><input type="checkbox" value="PC"> PC*</li>
-  <li><input type="checkbox" value="Keyboard"> Keyboard</li>
-  <li><input type="checkbox" value="Mouse"> Mouse*</li>
-  <li><input type="checkbox" value="External Screen"> External Screen</li>
-  <li><input type="checkbox" value="Headphones"> Headphones</li>
-  <li><input type="checkbox" value="Phone"> Mobile Phone*</li>
-  <li><input type="checkbox" value="Company Car"> Company Car</li>
-  <li><input type="checkbox" value="Fuel/Charging Card"> Fuel/Charging Card</li>
-</ul>
+                    <li><input type="checkbox" value="Headset"> Headset</li>
+                    <li><input type="checkbox" value="Beamer"> Projector</li>
+                    <li><input type="checkbox" value="Printer"> Printer</li>
+                    <li><input type="checkbox" value="PC"> PC*</li>
+                    <li><input type="checkbox" value="Keyboard"> Keyboard</li>
+                    <li><input type="checkbox" value="Mouse"> Mouse*</li>
+                    <li><input type="checkbox" value="External Screen"> External Screen</li>
+                    <li><input type="checkbox" value="Headphones"> Headphones</li>
+                    <li><input type="checkbox" value="Phone"> Mobile Phone*</li>
+                    <li><input type="checkbox" value="Company Car"> Company Car</li>
+                    <li><input type="checkbox" value="Fuel/Charging Card"> Fuel/Charging Card</li>
+                </ul>
 
             </section>
 
@@ -62,12 +62,12 @@
                 <button id="nextMonth">&gt;</button>
             </div>
             <div class="weekdays">
-    <div>Mon</div>
-    <div>Tue</div>
-    <div>Wed</div>
-    <div>Thu</div>
-    <div>Fri</div>
-</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+            </div>
 
             <div id="calendarDays" class="calendar-days"></div>
         </main>
@@ -78,6 +78,16 @@
             <h3 id="modalDate"></h3>
             <div id="activityOptions" class="activity-options"></div>
             <button id="closeModal">Close</button>
+        </div>
+    </div>
+
+    <div id="participantModal" class="modal">
+        <div class="modal-content">
+            <h3>Deelnemer toevoegen</h3>
+            <input type="text" id="firstNameInput" placeholder="Voornaam" />
+            <input type="text" id="lastNameInput" placeholder="Achternaam" />
+            <button id="saveParticipantBtn">Opslaan</button>
+            <button id="closeParticipantModal">Sluiten</button>
         </div>
     </div>
 

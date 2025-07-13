@@ -11,6 +11,11 @@ const modal = document.getElementById("activityModal");
 const modalDate = document.getElementById("modalDate");
 const activityOptions = document.getElementById("activityOptions");
 const closeModal = document.getElementById("closeModal");
+const participantModal = document.getElementById("participantModal");
+const firstNameInput = document.getElementById("firstNameInput");
+const lastNameInput = document.getElementById("lastNameInput");
+const saveParticipantBtn = document.getElementById("saveParticipantBtn");
+const closeParticipantModal = document.getElementById("closeParticipantModal");
 const sessions = [
   { title: 'Tour & welcome HR', duration: '1h', trainer: '' },
   { title: 'Welcome IT (equipment, access, apps)', duration: '2h30', trainer: '' },
@@ -39,6 +44,7 @@ const sessions = [
 
 let current = new Date();
 let dateActivities = {};
+let selectedActivityId = null;
 
 // 🗓 Kalender renderen (ma–vr)
 function renderCalendar() {
@@ -102,13 +108,21 @@ function renderActivitiesInCell(cell, dateStr) {
     span.classList.add("activity");
     span.textContent = act.title;
 
-    // Zoek de sessie op in de sessions-array
     const session = sessions.find(s => s.title === act.title);
-    const duration = session?.duration || "Onbekend";
-    const trainer = session?.trainer || "Trainer onbekend";
+    const duration = session?.duration || "Unknown";
+    const trainer = session?.trainer || "Trainer Unknown";
 
-    // Tooltiptekst met duur + trainer
-    span.title = `Duur: ${duration}\nTrainer: ${trainer}`;
+    // ✅ Deelnemers ophalen voor tooltip
+    const participants = act.participants || [];
+    const participantNames = participants.map(p => `${p.firstName} ${p.lastName}`).join(", ") || "No participant";
+
+    span.title = `Duration: ${duration}\nTrainer: ${trainer}\nParticipants: ${participantNames}`;
+
+    // Nieuw klikgedrag
+    span.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openParticipantModal(act._id);
+    });
 
     const removeBtn = document.createElement("button");
     removeBtn.className = "remove-btn";
@@ -242,7 +256,13 @@ function openModal(dateStr) {
 
 // Modal sluiten
 closeModal.addEventListener("click", () => modal.style.display = "none");
-window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
+window.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  } else if (e.target === participantModal) {
+    participantModal.style.display = "none";
+  }
+});
 
 // Activiteit toevoegen
 async function addActivity(date, title) {
@@ -259,6 +279,37 @@ async function addActivity(date, title) {
   await loadActivities();
 }
 
+// Open tweede modal
+function openParticipantModal(activityId) {
+  modal.style.display = "none"; // 👈 sluit eerst training modal
+  selectedActivityId = activityId;
+  firstNameInput.value = "";
+  lastNameInput.value = "";
+  participantModal.style.display = "flex";
+}
+
+
+// Sluit tweede modal
+closeParticipantModal.addEventListener("click", () => {
+  participantModal.style.display = "none";
+});
+
+// Opslaan deelnemer
+saveParticipantBtn.addEventListener("click", async () => {
+  const firstName = firstNameInput.value.trim();
+  const lastName = lastNameInput.value.trim();
+  if (!firstName || !lastName) return alert("Gelieve naam in te vullen");
+console.log("selectedActivityId", selectedActivityId);
+
+  await fetch(`${apiBase}/calendar/${selectedActivityId}/participant`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ firstName, lastName }),
+  });
+
+  participantModal.style.display = "none";
+  await loadActivities(); // herlaad kalender
+});
 // Activiteit verwijderen
 async function removeActivity(id) {
   await fetch(`${apiBase}/calendar/${id}`, { method: "DELETE" });

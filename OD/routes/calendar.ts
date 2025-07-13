@@ -43,4 +43,18 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
+router.patch("/:id/participant/:id", async (req: Request, res: Response) => {
+  const { firstName, lastName } = req.body;
+  try {
+    const updated = await CalendarActivity.findByIdAndUpdate(
+      req.params.id,
+      { $push: { participants: { firstName, lastName } } },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: "Kon deelnemer niet toevoegen" });
+  }
+});
+
 export default router;

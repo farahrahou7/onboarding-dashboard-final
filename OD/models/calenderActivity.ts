@@ -4,14 +4,22 @@ export interface ICalendarActivity extends Document {
   title: string;
   date: string;
   userId: string;
-  equipment?: string[]; // ✅ toegevoegd
+  equipment?: string[];
+  participants?: {
+    firstName: string;
+    lastName: string;
+  }[];
 }
 
 const CalendarActivitySchema = new Schema({
   title: { type: String, required: true },
   date: { type: String, required: true },
   userId: { type: String, required: true },
-  equipment: { type: [String], default: [] } // ✅ toegevoegd
+  equipment: { type: [String], default: [] },
+  participants: [{
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true }
+  }]
 });
 
 export default mongoose.model<ICalendarActivity>(

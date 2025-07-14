@@ -21,7 +21,7 @@ const sessions = [
   {
     title: "Welcome IT (equipment, access, apps)",
     duration: "2h30",
-    trainer: "",
+    trainer: "Roel Van Der Veken",
   },
   { title: "Welcome godmother or godfather", duration: "1h", trainer: "" },
   { title: "Welcome N+1", duration: "2h30", trainer: "" },

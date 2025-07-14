@@ -1,5 +1,5 @@
 const apiBase = "https://onboarding-dashboard-final.onrender.com/api";
-const userId = "user123";
+const userId = localStorage.getItem("userId");
 
 // DOM-elementen
 const calendarDays = document.getElementById("calendarDays");
@@ -17,30 +17,52 @@ const lastNameInput = document.getElementById("lastNameInput");
 const saveParticipantBtn = document.getElementById("saveParticipantBtn");
 const closeParticipantModal = document.getElementById("closeParticipantModal");
 const sessions = [
-  { title: 'Tour & welcome HR', duration: '1h', trainer: '' },
-  { title: 'Welcome IT (equipment, access, apps)', duration: '2h30', trainer: '' },
-  { title: 'Welcome godmother or godfather', duration: '1h', trainer: '' },
-  { title: 'Welcome N+1', duration: '2h30', trainer: '' },
-  { title: "Welcome team (121's)", duration: '2h', trainer: '' },
-  { title: 'Intro VTQ (in group)', duration: '2h', trainer: 'Lisa Smet' },
-  { title: 'Intro HR (HR systems & info)', duration: '2h', trainer: '' },
-  { title: 'Intro sales', duration: '2h', trainer: 'Bieke De Man' },
-  { title: 'Intro Solutions & KAM', duration: '2h', trainer: 'Lies Jordaens' },
-  { title: 'Intro Finance', duration: '1h', trainer: 'Peter De Veylder' },
-  { title: 'Intro sales manager Vet BE', duration: '2h', trainer: 'Lien De Schutter' },
-  { title: 'Intro sales manager Vet NL', duration: '2h', trainer: 'Elien Taffin' },
-  { title: 'Intro Sales manager Pharma', duration: '1h', trainer: 'Nancy Miceli' },
-  { title: 'Intro BI & IT', duration: '1h', trainer: 'Kristof Van Den Bosch' },
-  { title: 'Intro Communication', duration: '1h', trainer: 'Candice Hamilton' },
-  { title: 'Intro Corporate Communication', duration: '1h', trainer: 'Eva Swaab' },
-  { title: 'Intro E-Commerce', duration: '1h', trainer: 'Birger De Geeter' },
-  { title: 'Intro QANRA Pharmacovig', duration: '1h', trainer: 'Jeroen Lievens' },
-  { title: 'Intro Marketing', duration: '1h', trainer: 'Annick Janssen' },
-  { title: 'Safety', duration: 'NAV', trainer: 'Thomas Van Elst & Eva Swaab' },
-  { title: 'Pharmacovig', duration: 'NAV', trainer: 'Jeroen Lievens' },
+  { title: "Tour & welcome HR", duration: "1h", trainer: "" },
+  {
+    title: "Welcome IT (equipment, access, apps)",
+    duration: "2h30",
+    trainer: "",
+  },
+  { title: "Welcome godmother or godfather", duration: "1h", trainer: "" },
+  { title: "Welcome N+1", duration: "2h30", trainer: "" },
+  { title: "Welcome team (121's)", duration: "2h", trainer: "" },
+  { title: "Intro VTQ (in group)", duration: "2h", trainer: "Lisa Smet" },
+  { title: "Intro HR (HR systems & info)", duration: "2h", trainer: "" },
+  { title: "Intro sales", duration: "2h", trainer: "Bieke De Man" },
+  { title: "Intro Solutions & KAM", duration: "2h", trainer: "Lies Jordaens" },
+  { title: "Intro Finance", duration: "1h", trainer: "Peter De Veylder" },
+  {
+    title: "Intro sales manager Vet BE",
+    duration: "2h",
+    trainer: "Lien De Schutter",
+  },
+  {
+    title: "Intro sales manager Vet NL",
+    duration: "2h",
+    trainer: "Elien Taffin",
+  },
+  {
+    title: "Intro Sales manager Pharma",
+    duration: "1h",
+    trainer: "Nancy Miceli",
+  },
+  { title: "Intro BI & IT", duration: "1h", trainer: "Kristof Van Den Bosch" },
+  { title: "Intro Communication", duration: "1h", trainer: "Candice Hamilton" },
+  {
+    title: "Intro Corporate Communication",
+    duration: "1h",
+    trainer: "Eva Swaab",
+  },
+  { title: "Intro E-Commerce", duration: "1h", trainer: "Birger De Geeter" },
+  {
+    title: "Intro QANRA Pharmacovig",
+    duration: "1h",
+    trainer: "Jeroen Lievens",
+  },
+  { title: "Intro Marketing", duration: "1h", trainer: "Annick Janssen" },
+  { title: "Safety", duration: "NAV", trainer: "Thomas Van Elst & Eva Swaab" },
+  { title: "Pharmacovig", duration: "NAV", trainer: "Jeroen Lievens" },
 ];
-
-
 
 let current = new Date();
 let dateActivities = {};
@@ -68,11 +90,14 @@ function renderCalendar() {
   }
 
   const monthName = current.toLocaleString("en-EN", { month: "long" });
-  monthYear.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  monthYear.textContent = `${
+    monthName.charAt(0).toUpperCase() + monthName.slice(1)
+  } ${year}`;
 
   const day = new Date(startDate);
   while (day <= endDate) {
-    if (day.getDay() >= 1 && day.getDay() <= 5) { // alleen Ma-Vr
+    if (day.getDay() >= 1 && day.getDay() <= 5) {
+      // alleen Ma-Vr
       const cell = document.createElement("div");
       cell.className = "day";
 
@@ -100,21 +125,22 @@ function renderCalendar() {
   loadActivities();
 }
 
-
 // Toon activiteiten in cel
 function renderActivitiesInCell(cell, dateStr) {
-  (dateActivities[dateStr] || []).forEach(act => {
+  (dateActivities[dateStr] || []).forEach((act) => {
     const span = document.createElement("div");
     span.classList.add("activity");
     span.textContent = act.title;
 
-    const session = sessions.find(s => s.title === act.title);
+    const session = sessions.find((s) => s.title === act.title);
     const duration = session?.duration || "Unknown";
     const trainer = session?.trainer || "Trainer Unknown";
 
     // ✅ Deelnemers ophalen voor tooltip
     const participants = act.participants || [];
-    const participantNames = participants.map(p => `${p.firstName} ${p.lastName}`).join(", ") || "No participant";
+    const participantNames =
+      participants.map((p) => `${p.firstName} ${p.lastName}`).join(", ") ||
+      "No participant";
 
     span.title = `Duration: ${duration}\nTrainer: ${trainer}\nParticipants: ${participantNames}`;
 
@@ -136,7 +162,6 @@ function renderActivitiesInCell(cell, dateStr) {
     cell.appendChild(span);
   });
 }
-
 
 // Laad alle activiteiten en her-render
 async function loadActivities() {
@@ -165,7 +190,7 @@ document.getElementById("addNote").addEventListener("click", async () => {
   await fetch(`${apiBase}/notes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, userId })
+    body: JSON.stringify({ text, userId }),
   });
   loadNotes();
 });
@@ -174,31 +199,31 @@ async function loadNotes() {
   const res = await fetch(`${apiBase}/notes/${userId}`);
   const notes = await res.json();
   notesContainer.innerHTML = "";
-  notes.forEach(n => {
-  const noteDiv = document.createElement("div");
-  noteDiv.className = "note";
+  notes.forEach((n) => {
+    const noteDiv = document.createElement("div");
+    noteDiv.className = "note";
 
-  const noteText = document.createElement("span");
-  noteText.textContent = n.text;
+    const noteText = document.createElement("span");
+    noteText.textContent = n.text;
 
-  const buttonGroup = document.createElement("div");
+    const buttonGroup = document.createElement("div");
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "🗑️";
-  deleteBtn.className = "delete-note-btn";
-  deleteBtn.title = "Verwijder deze notitie";
-  deleteBtn.onclick = async () => {
-    await deleteNote(n._id);
-    loadNotes();
-  };
-  
-  buttonGroup.appendChild(deleteBtn);
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.className = "delete-note-btn";
+    deleteBtn.title = "Verwijder deze notitie";
+    deleteBtn.onclick = async () => {
+      await deleteNote(n._id);
+      loadNotes();
+    };
 
-  noteDiv.appendChild(noteText);
-  noteDiv.appendChild(buttonGroup);
-  notesContainer.appendChild(noteDiv);
-});
-};
+    buttonGroup.appendChild(deleteBtn);
+
+    noteDiv.appendChild(noteText);
+    noteDiv.appendChild(buttonGroup);
+    notesContainer.appendChild(noteDiv);
+  });
+}
 
 async function deleteNote(id) {
   await fetch(`${apiBase}/notes/${id}`, {
@@ -213,12 +238,11 @@ async function updateNote(id, newText) {
   });
 }
 
-
 // Planned activities bar (links)
 function renderPlannedList() {
   plannedActivitiesList.innerHTML = "";
-  Object.keys(dateActivities).forEach(date => {
-    dateActivities[date].forEach(it => {
+  Object.keys(dateActivities).forEach((date) => {
+    dateActivities[date].forEach((it) => {
       const li = document.createElement("li");
       li.textContent = `${date} – ${it.title}`;
       li.dataset.id = it._id;
@@ -234,15 +258,17 @@ function openModal(dateStr) {
   activityOptions.innerHTML = "";
 
   // Alle opties tonen
-  sessions.forEach(session => {
-  const btn = document.createElement("button");
-  btn.textContent = session.title;
-  btn.title = `Duur: ${session.duration}\nTrainer: ${session.trainer || "Onbekend"}`;
-  btn.addEventListener("click", () => addActivity(dateStr, session.title));
-  activityOptions.appendChild(btn);
-});
+  sessions.forEach((session) => {
+    const btn = document.createElement("button");
+    btn.textContent = session.title;
+    btn.title = `Duur: ${session.duration}\nTrainer: ${
+      session.trainer || "Onbekend"
+    }`;
+    btn.addEventListener("click", () => addActivity(dateStr, session.title));
+    activityOptions.appendChild(btn);
+  });
   // Bestaande activiteiten
-  (dateActivities[dateStr] || []).forEach(act => {
+  (dateActivities[dateStr] || []).forEach((act) => {
     const btn = document.createElement("button");
     btn.classList.add("planned");
     btn.textContent = act.title + " ×";
@@ -255,7 +281,7 @@ function openModal(dateStr) {
 }
 
 // Modal sluiten
-closeModal.addEventListener("click", () => modal.style.display = "none");
+closeModal.addEventListener("click", () => (modal.style.display = "none"));
 window.addEventListener("click", (e) => {
   if (e.target === modal) {
     modal.style.display = "none";
@@ -267,13 +293,14 @@ window.addEventListener("click", (e) => {
 // Activiteit toevoegen
 async function addActivity(date, title) {
   // Verzamel alle aangevinkte materialen
-  const checkedItems = Array.from(document.querySelectorAll('#materials input:checked'))
-    .map(checkbox => checkbox.parentElement.textContent.trim());
+  const checkedItems = Array.from(
+    document.querySelectorAll("#materials input:checked")
+  ).map((checkbox) => checkbox.parentElement.textContent.trim());
 
   await fetch(`${apiBase}/calendar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, date, title, equipment: checkedItems })
+    body: JSON.stringify({ userId, date, title, equipment: checkedItems }),
   });
 
   await loadActivities();
@@ -288,7 +315,6 @@ function openParticipantModal(activityId) {
   participantModal.style.display = "flex";
 }
 
-
 // Sluit tweede modal
 closeParticipantModal.addEventListener("click", () => {
   participantModal.style.display = "none";
@@ -299,7 +325,7 @@ saveParticipantBtn.addEventListener("click", async () => {
   const firstName = firstNameInput.value.trim();
   const lastName = lastNameInput.value.trim();
   if (!firstName || !lastName) return alert("Gelieve naam in te vullen");
-console.log("selectedActivityId", selectedActivityId);
+  console.log("selectedActivityId", selectedActivityId);
 
   await fetch(`${apiBase}/calendar/${selectedActivityId}/participant`, {
     method: "PATCH",
@@ -327,8 +353,14 @@ function formatCurrentMonth() {
 }
 
 // Navigatie
-prevMonth.onclick = () => { current.setMonth(current.getMonth() - 1); refreshUI(); };
-nextMonth.onclick = () => { current.setMonth(current.getMonth() + 1); refreshUI(); };
+prevMonth.onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  refreshUI();
+};
+nextMonth.onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  refreshUI();
+};
 
 // Quel de start
 document.addEventListener("DOMContentLoaded", () => {
@@ -346,4 +378,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-

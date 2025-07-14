@@ -1,28 +1,15 @@
-import mongoose, { Document, Schema } from "mongoose";
+import { ObjectId } from "mongodb";
 
-export interface ICalendarActivity extends Document {
-  title: string;
-  date: string;
-  userId: string;
-  equipment?: string[];
-  participants?: {
-    firstName: string;
-    lastName: string;
-  }[];
+export interface Participant {
+  firstName: string;
+  lastName: string;
 }
 
-const CalendarActivitySchema = new Schema({
-  title: { type: String, required: true },
-  date: { type: String, required: true },
-  userId: { type: String, required: true },
-  equipment: { type: [String], default: [] },
-  participants: [{
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true }
-  }]
-});
-
-export default mongoose.model<ICalendarActivity>(
-  "CalendarActivity",
-  CalendarActivitySchema
-);
+export interface CalendarActivity {
+  _id?: ObjectId;
+  userId: string;
+  date: string;
+  title: string;
+  equipment?: string[];
+  participants?: Participant[];
+}

@@ -1,17 +1,22 @@
 import express, { Request, Response } from "express";
-import clientPromise from "../database";
+import { connectToDatabase } from "../database";
+import { CalendarActivity } from "../models/calenderActivity";
 
 const router = express.Router();
 
 router.get("/", async (_req: Request, res: Response) => {
-  const client = await clientPromise;
-  const activities = await client.db("onboarding").collection("activities").find({}).toArray();
+  const db = await connectToDatabase();
+  const activities = await db
+    .collection<CalendarActivity>("activities")
+    .find({})
+    .toArray();
   res.json(activities);
 });
 
 router.post("/", async (req: Request, res: Response) => {
-  const client = await clientPromise;
-  await client.db("onboarding").collection("activities").insertOne(req.body);
+  const db = await connectToDatabase();
+  const newActivity: CalendarActivity = req.body;
+  await db.collection<CalendarActivity>("activities").insertOne(newActivity);
   res.status(201).json({ message: "Activity saved" });
 });
 

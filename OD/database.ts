@@ -1,27 +1,19 @@
-import { MongoClient, Db } from "mongodb";
+// database.ts – using MongoDB Node.js Driver
+import { MongoClient, Db, ObjectId } from "mongodb";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 const uri = process.env.MONGO_URI as string;
 const client = new MongoClient(uri);
 
 let db: Db;
-let clientPromise: Promise<Db>;
-
-if (!global._mongoDbPromise) {
-  clientPromise = client.connect().then((client) => {
-    db = client.db("onboarding"); // ✅ hier kiezen we expliciet de juiste database
-    return db;
-  });
-  global._mongoDbPromise = clientPromise;
-} else {
-  clientPromise = global._mongoDbPromise;
+async function connectToDatabase(): Promise<Db> {
+  // Connect to MongoDB (if not already connected)
+  if (!db) {
+    await client.connect();
+    db = client.db("onboarding"); // Explicitly use the "onboarding" database
+  }
+  return db;
 }
 
-export default clientPromise;
-
-// Typing workaround for Node global
-declare global {
-  var _mongoDbPromise: Promise<Db> | undefined;
-}
+export { connectToDatabase, ObjectId, client };

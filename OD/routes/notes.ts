@@ -1,37 +1,45 @@
-import express, { Request, Response } from "express";
-import Note, { INote } from "../models/note";
-
+import express from "express";
+import { connectToDatabase, ObjectId } from "../database";
 const router = express.Router();
 
-// ✅ Haal notities op voor een specifieke gebruiker
-router.get("/:userId", async (req: Request, res: Response) => {
-  try {
-    const notes: INote[] = await Note.find({ userId: req.params.userId });
-    res.json(notes);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch notes" });
-  }
+router.get("/:userId", async (req, res) => {
+  const db = await connectToDatabase();
+  const notes = await db
+    .collection("notes")
+    .find({ userId: req.params.userId })
+    .toArray();
+  res.json(notes);
 });
 
-// ✅ Voeg een nieuwe notitie toe
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    const newNote = new Note(req.body);
-    const savedNote = await newNote.save();
-    res.status(201).json(savedNote);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to save note" });
-  }
+router.post("/", async (req, res) => {
+  const db = await connectToDatabase();
+  const result = await db
+    .collection("notes")
+    .insertOne({ ...req.body, createdAt: new Date() });
+  res.status(201).json({ _id: result.insertedId });
 });
 
-// ✅ Verwijder een notitie
-router.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    await Note.findByIdAndDelete(req.params.id);
-    res.sendStatus(204);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to delete note" });
+router.delete("/:id", async (req, res) => {
+  const db = await connectToDatabase();
+  await db.collection("notes").deleteOne({ _id: new ObjectId(req.params.id) });
+  res.sendStatus(204);
+});
+
+router.put("/:id", async (req, res) => {
+  const db = await connectToDatabase();
+  const result = await db
+    .collection("notes")
+    .findOneAndUpdate(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { text: req.body.text } },
+      { returnDocument: "after" }
+    );
+
+  if (!result || !result.value) {
+    return res.status(404).json({ message: "Note not found" });
   }
+
+  res.json(result.value);
 });
 
 export default router;

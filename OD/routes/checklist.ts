@@ -1,49 +1,45 @@
-import express, { Request, Response } from "express";
-import ChecklistItem, { IChecklistItem } from "../models/checkListItem";
-
+import express from "express";
+import { connectToDatabase, ObjectId } from "../database";
 const router = express.Router();
 
-// ✅ Haal alle checklist-items op voor één gebruiker
-router.get("/:userId", async (req: Request, res: Response) => {
-  try {
-    const items: IChecklistItem[] = await ChecklistItem.find({ userId: req.params.userId });
-    res.json(items);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch checklist items" });
-  }
+router.get("/:userId", async (req, res) => {
+  const db = await connectToDatabase();
+  const items = await db
+    .collection("checklistitems")
+    .find({ userId: req.params.userId })
+    .toArray();
+  res.json(items);
 });
 
-// ✅ Voeg een nieuw item toe
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    const newItem = new ChecklistItem(req.body);
-    const savedItem = await newItem.save();
-    res.status(201).json(savedItem);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to save checklist item" });
-  }
+router.post("/", async (req, res) => {
+  const db = await connectToDatabase();
+  const result = await db.collection("checklistitems").insertOne(req.body);
+  res.status(201).json({ _id: result.insertedId });
 });
 
-// ✅ Update een bestaand item
-router.put("/:id", async (req: Request, res: Response) => {
-  try {
-    const updatedItem = await ChecklistItem.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.json(updatedItem);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to update checklist item" });
+router.put("/:id", async (req, res) => {
+  const db = await connectToDatabase();
+  const result = await db
+    .collection("checklistitems")
+    .findOneAndUpdate(
+      { _id: new ObjectId(req.params.id) },
+      { $set: req.body },
+      { returnDocument: "after" }
+    );
+
+  if (!result || !result.value) {
+    return res.status(404).json({ message: "Checklist item not found" });
   }
+
+  res.json(result.value);
 });
 
-// ✅ Verwijder een item
-router.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    await ChecklistItem.findByIdAndDelete(req.params.id);
-    res.sendStatus(204);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to delete checklist item" });
-  }
+router.delete("/:id", async (req, res) => {
+  const db = await connectToDatabase();
+  await db
+    .collection("checklistitems")
+    .deleteOne({ _id: new ObjectId(req.params.id) });
+  res.sendStatus(204);
 });
 
 export default router;

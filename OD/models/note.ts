@@ -1,18 +1,8 @@
-import mongoose, { Document, Schema } from "mongoose";
+import { ObjectId } from "mongodb";
 
-// TypeScript interface
-export interface INote extends Document {
-  text: string;
+export interface Note {
+  _id?: ObjectId;
   userId: string;
+  text: string;
   createdAt: Date;
 }
-
-// Mongoose schema met validatie
-const NoteSchema: Schema = new Schema({
-  text: { type: String, required: true },
-  userId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-// Export model
-export default mongoose.model<INote>("Note", NoteSchema);

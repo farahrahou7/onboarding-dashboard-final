@@ -1,17 +1,17 @@
 import express, { Request, Response } from "express";
-import clientPromise from "../database";
+import { connectToDatabase } from "../database";
 
 const router = express.Router();
 
 router.get("/", async (_req: Request, res: Response) => {
-  const client = await clientPromise;
-  const data = await client.db("onboarding").collection("materials").find({}).toArray();
+  const db = await connectToDatabase();
+  const data = await db.collection("materials").find({}).toArray();
   res.json(data);
 });
 
 router.post("/", async (req: Request, res: Response) => {
-  const client = await clientPromise;
-  await client.db("onboarding").collection("materials").insertOne(req.body);
+  const db = await connectToDatabase();
+  await db.collection("materials").insertOne(req.body);
   res.status(201).json({ message: "Material saved" });
 });
 

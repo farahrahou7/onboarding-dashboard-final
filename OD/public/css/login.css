@@ -2,18 +2,18 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(100deg, #6aaf42 0%, #367a2d 100%);
+  background: linear-gradient(100deg, #ffffff 0%, #bababa 100%);
   overflow: hidden;
 }
 
 /* Glazen container */
 .login-container {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(79, 190, 0, 0.5);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
